@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TRANG 2025 ALBUM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Montserrat:wght@300;400&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a; 
+            --paper-color: #f2eadd; 
+            --text-color: #2c241e; 
+            --accent-color: #eebc51; 
+            --secondary-color: #a98467; 
+            --book-w: 450px;
+            --book-h: 580px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-color);
+            background: radial-gradient(ellipse at center, #1e293b 0%, #0f172a 100%);
+            font-family: 'Dancing Script', cursive;
+            color: var(--text-color);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* CANVAS EFFECTS */
+        #snow-canvas, #fireworks-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.8;
+        }
+        #fireworks-canvas { z-index: 2000; display: none; opacity: 1; }
+
+        #happy-new-year-text {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2500;
+            text-align: center;
+            display: none;
+            pointer-events: none;
+            width: 90%;
+        }
+
+        #happy-new-year-text h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(3rem, 10vw, 5rem);
+            color: var(--accent-color);
+            text-shadow: 0 0 20px rgba(238, 188, 81, 0.8), 0 0 40px rgba(238, 188, 81, 0.4);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #happy-new-year-text.show h1 { opacity: 1; transform: scale(1); }
+
+        /* WELCOME SCREEN */
+        #welcome-screen {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #243b55 0%, #0f172a 100%);
+            color: #e8e0d5;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .typing-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(1.2rem, 5vw, 2rem);
+            margin-bottom: 2rem;
+            min-height: 1.5em;
+            line-height: 1.6;
+        }
+
+        .btn-start {
+            padding: 12px 30px;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            background: transparent;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            opacity: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .btn-start:hover { background: var(--accent-color); color: var(--bg-color); }
+
+        /* BOOK STRUCTURE */
+        .book-container { 
+            perspective: 2000px; 
+            display: none; 
+            z-index: 10;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .book {
+            position: relative;
+            width: var(--book-w);
+            height: var(--book-h);
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+            /* Căn giữa trang bìa ban đầu */
+            transform: translateX(0px); 
+        }
+
+        .page {
+            position: absolute;
+            width: 100%; height: 100%;
+            top: 0; left: 0;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .front, .back {
+            position: absolute;
+            width: 100%; height: 100%;
+            top: 0; left: 0;
+            backface-visibility: hidden;
+            padding: clamp(15px, 4vw, 30px);
+            background: var(--paper-color);
+            border: 1px solid #dcd3c7;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 3px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .back { 
+            transform: rotateY(180deg); 
+            background: #ede6d8; 
+            box-shadow: inset -3px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .cover-front {
+            background: #3e2723 !important;
+            color: var(--accent-color);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border: 8px double var(--accent-color) !important;
+        }
+
+        .main-cover-img {
+            width: 90%;
+            max-height: 250px;
+            object-fit: contain; 
+            border: 3px solid var(--accent-color);
+            margin-bottom: 20px;
+            border-radius: 4px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            background: #2c241e;
+        }
+
+        .page.flipped { transform: rotateY(-180deg); }
+
+        /* MUSIC PLAYER */
+        .music-player {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 2500;
+            background: rgba(15, 23, 42, 0.9); color: white;
+            padding: 8px 15px; border-radius: 30px; 
+            font-size: 0.75rem; display: flex; align-items: center; gap: 10px;
+            border: 1px solid rgba(238, 188, 81, 0.3);
+            backdrop-filter: blur(5px);
+            width: max-content;
+            max-width: 90vw;
+        }
+        .song-info {
+            max-width: 120px; overflow: hidden; white-space: nowrap;
+            text-overflow: ellipsis; color: var(--accent-color); font-weight: bold;
+        }
+        .music-controls { display: flex; gap: 10px; align-items: center; }
+        .music-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1rem; }
+
+        /* GRID & POLAROID */
+        .month-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(1.5rem, 6vw, 2.2rem);
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(169, 132, 103, 0.3);
+            text-align: center;
+        }
+
+        .polaroid-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            grid-template-rows: 1fr 1fr;
+            gap: 8px; 
+            flex-grow: 1;
+            align-items: center;
+        }
+
+        .polaroid {
+            background: #faf9f6; 
+            padding: 5px 5px 12px 5px;
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.1);
+            transform: rotate(var(--r));
+            text-align: center;
+            height: 100%;
+            max-height: 170px;
+            display: flex;
+            flex-direction: column;
+        }
+        .polaroid img, .polaroid video { 
+            width: 100%; 
+            height: 110px; 
+            object-fit: cover; 
+            background: #eee; 
+            border: 1px solid #ddd; 
+            cursor: zoom-in;
+        }
+        .polaroid small { 
+            font-size: 0.6rem; 
+            font-family: 'Dancing Script', cursive; 
+            color: #444; 
+            padding-top: 4px;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .full-img {
+            width: 100%; 
+            height: 250px; 
+            object-fit: contain; 
+            background: #fdfdfd; 
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            cursor: zoom-in;
+        }
+
+        .desc { 
+            font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+            line-height: 1.4; 
+            font-style: italic; 
+            color: var(--text-color); 
+            opacity: 0.9; 
+            margin-top: 10px; 
+            text-align: center; 
+        }
+
+        .page-note {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            line-height: 1.3;
+            color: #5d534a;
+            font-style: italic;
+            text-align: center;
+            border-top: 1px dashed rgba(169, 132, 103, 0.2);
+            padding-top: 8px;
+        }
+
+        /* ZOOM MODAL STYLES */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 5000;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            justify-content: center;
+            align-items: center;
+            cursor: zoom-out;
+        }
+        .modal-content {
+            max-width: 95%;
+            max-height: 80%;
+            border: 4px solid white;
+            border-radius: 4px;
+            object-fit: contain;
+        }
+
+        /* VOICE & VIDEO */
+        .voice-card, .video-card {
+            background: rgba(169, 132, 103, 0.1);
+            border: 1px dashed var(--secondary-color);
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 8px;
+            text-align: center;
+        }
+        .video-container {
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid white;
+            margin-top: 5px;
+        }
+        .btn-voice {
+            background: var(--secondary-color);
+            color: white; border: none; padding: 6px 12px; border-radius: 20px;
+            cursor: pointer; font-family: inherit; margin: 5px auto; font-size: 0.8rem;
+        }
+
+        #note-2026 {
+            width: 100%; height: 70px; margin-top: 10px; 
+            background: rgba(255,255,255,0.1); border: 1px solid var(--accent-color); 
+            color: white; padding: 10px; font-family: inherit; font-size: 0.9rem;
+        }
+
+        .sticker { position: absolute; bottom: 10px; right: 10px; font-size: 1.2rem; }
+        .hidden { display: none !important; }
+        .fade-in { opacity: 1 !important; }
+
+        /* RESPONSIVE SCALE FOR MOBILE */
+        @media (max-width: 600px) {
+            :root {
+                --book-w: 85vw;
+                --book-h: 70vh;
+            }
+            .book { transform: translateX(0); } /* Luôn giữa màn hình mobile */
+            .main-cover-img { max-height: 180px; }
+            .full-img { height: 180px; }
+            .polaroid-grid { gap: 5px; }
+            .polaroid { max-height: 140px; }
+            .polaroid img, .polaroid video { height: 85px; }
+            .music-player { bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="snow-canvas"></canvas>
+    <canvas id="fireworks-canvas"></canvas>
+
+    <div id="happy-new-year-text"><h1>Happy New Year 2026</h1></div>
+
+    <div id="image-modal" class="image-modal">
+        <div id="modal-container" style="display: flex; justify-content: center; align-items: center; width: 100%;"></div>
+    </div>
+
+    <div class="music-player">
+        <div class="music-controls">
+            <button id="prev-song" class="music-btn">⏮</button>
+            <button id="play-pause" class="music-btn">▶</button>
+            <button id="next-song" class="music-btn">⏭</button>
+        </div>
+        <div class="song-info" id="song-title">Đang tải...</div>
+        <audio id="bg-music"></audio>
+    </div>
+
+    <div id="welcome-screen">
+        <div class="typing-text" id="typewriter"></div>
+        <button class="btn-start" id="btn-start">ĐI ĐẾN ALBUM</button>
+    </div>
+
+    <div class="book-container" id="book-container">
+        <div class="book" id="myBook">
+            
+            <div class="page" style="z-index: 60;">
+                <div class="front cover-front">
+                    <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img">
+                    <h1 style="font-size: 1.5rem;">MIUZXC/TRANG 2025</h1>
+                    <p>— Cùng xem lại một năm qua —</p>
+                    <small style="margin-top: 15px; opacity: 0.8;">Chạm để mở album</small>
+                </div>
+                <div class="back">
+                    <h2 class="month-title">MOMENT</h2>
+                    <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img zoomable">
+                    <p class="desc">"Những moments về mấy ng tích góp được cả năm qua"</p>
+                    <span class="sticker">✨</span>
+                </div>
+            </div>
+
+            <div class="page" style="z-index: 59;">
+                <div class="front">
+                    <h2 class="month-title">Opening Words</h2>
+                    <p class="desc" style="font-size: 0.95rem; text-align: left;">Dear Trang 2025,<br>
+                        <br> Lúc đầu muốn tặng gì đó cho mấy ng vào cuối năm, xong hok bik tặng gì, rồi có ý tưởng là làm một cuốn album về mấy ng trong một năm qua.<br>
+                        <br> Chiếc album nhỏ này tui làm tổng hợp các hình ảnh từ social, pm về mấy ng một năm qua.<br>
+                        <br> Phần nhạc coi như tôi đánh cược ik, tuy đc cho tên nhạc rồi, nhưng tui chọn nhạc theo cảm tính, mong là sẽ tâm đầu ý hợp với gu nhạc của mấy ng.<br>
+                        <br> Đây là lần đầu tiên tui làm cái này, nếu có sai sót gì hãy bỏ qua cho tui.</p>
+                    <span class="sticker">✍️</span>
+                </div>
+                <div class="back" id="jan-first-half"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const albumData = {
+            "January": [
+                { url: "https://i.postimg.cc/3NYZ4KPp/pic1_t1.png", caption: "hihi vừa win game 😊" },
+                { url: "https://i.postimg.cc/WzT7F2Qq/pic2_t1.png", caption: "hentai 😒" }
+            ],
+            "February": [{ url: "https://i.postimg.cc/pry8wp8m/pic1_t2.png", caption: "🥴" }],
+            "March": [
+                { url: "https://i.postimg.cc/qvYkwgBQ/pic1_t3.png", caption: "ヾ(＠⌒ー⌒＠)ノ" },
+                { url: "https://i.postimg.cc/CxtF7dM6/pic2_t3.png", caption: "(●ˇ∀ˇ●)" }
+            ],
+            "April": [{ url: "https://i.postimg.cc/wjJ6Wgt7/pic1_t4.png", caption: "Cute 😍🩷" }],
+            "May": [
+                { url: "https://i.postimg.cc/SNbqJHTL/pic1_t5.png", caption: "Nay xinh chụp cho tấm 🥰" },
+                { url: "https://i.postimg.cc/52xVmLMk/pic2_t5.png", caption: "❤️" },
+                { url: "https://i.postimg.cc/x1jwmQKR/pic3_t5.png", caption: "🩵" },
+                { url: "https://i.postimg.cc/Z5gwqzjS/pic4_t5.png", caption: "🖤" },
+            ],
+            "June": [
+                { url: "https://i.postimg.cc/nrSHW1fQ/pic1_t6.png", caption: "(*^▽^*)" },
+                { url: "https://i.postimg.cc/h42PhKQK/pic2_t6.png", caption: "`(*>﹏<*)′" },
+                { url: "https://i.postimg.cc/zv2JQkYV/pic3_t6.png", caption: "(✿◠‿◠)" },
+                { url: "https://i.postimg.cc/fW8TkMSR/pic4_t6.png", caption: "(≧∇≦)" },
+                { url: "https://i.postimg.cc/Cx0HcCJx/pic5_t6.png", caption: "o((>ω< ))o" },
+                { url: "https://i.postimg.cc/y8KXLhnd/pic6_t6.png", caption: "( •̀ ω •́ )" },
+                { url: "https://i.postimg.cc/y8KXLhnJ/pic7_t6.png", caption: "o((>ω< ))o" },
+                { url: "https://i.postimg.cc/4xGbWvw7/pic8_t6.png", caption: "(❁´◡`❁)" }
+            ],
+            "July": [
+                { url: "https://i.postimg.cc/RZmQg1Gm/pic1_t7.png", caption: "( •̀ ω •́ )✧" },
+                { url: "https://i.postimg.cc/y8KXLhnB/pic2_t7.png", caption: "q(≧▽≦q)" },
+                { url: "https://i.postimg.cc/vZyL07Xb/pic3_t7.png", caption: "(^・ω・^ )" },
+                { url: "https://i.postimg.cc/RZmQg1GB/pic4_t7.png", caption: "(o゜▽゜)o☆" },
+                { url: "https://i.postimg.cc/htnb28MG/pic5_t7.png", caption: "✪ ω ✪" },
+                { url: "https://i.postimg.cc/htnb28Mv/pic6_t7.png", caption: "(✿◕‿◕✿)" },
+                { url: "https://i.postimg.cc/c4FwcqKF/pic7_t7.png", caption: "(. ❛ ᴗ ❛.)" },
+                { url: "https://i.postimg.cc/zXxKkmLt/pic8_t7.png", caption: "(。・ω・。)" }
+            ],
+            "August": [
+                { url: "https://i.postimg.cc/Hs6XtGJ7/pic1_t8.png", caption: "Pretty" },
+                { url: "https://i.postimg.cc/Nfdmxhyy/pic2_t8.png", caption: "Shining" },
+                { url: "https://i.postimg.cc/Wb5g7RDF/pic3_t8.png", caption: "Lovely" },
+                { url: "https://i.postimg.cc/fT8mv43X/pic4_t8.png", caption: "Sweet" },
+                { url: "https://i.postimg.cc/sDT7JFBP/pic5_t8.png", caption: "Hey" },
+                { url: "https://i.postimg.cc/m2mCSxcN/pic6_t8.png", caption: "Tiny" },
+                { url: "https://i.postimg.cc/02VDCg6t/pic7_t8.png", caption: "💌" },
+                { url: "https://i.postimg.cc/FHjfn2zV/pic8_t8.png", caption: "Charming" }
+            ],
+            "September": [
+                { url: "https://i.postimg.cc/2SpbGzkv/pic1_t9.png", caption: "🤗" },
+                { url: "https://i.postimg.cc/rw60j8V1/pic2_t9.png", caption: "😊" },
+                { url: "https://i.postimg.cc/Njh9Dgs8/pic3_t9.png", caption: "☺️" },
+                { url: "https://i.postimg.cc/VkyrgYfB/pic4_t9.png", caption: "🤩" },
+                { url: "https://i.postimg.cc/RZr6dMSX/pic5_t9.png", caption: "😗" },
+                { url: "https://i.postimg.cc/Njh9Dgsz/pic6_t9.png", caption: "😙" },
+                { url: "https://i.postimg.cc/QdpBnRCq/pic7_t9.png", caption: "😚" },
+                { url: "https://i.postimg.cc/YC14yJ03/pic8_t9.png", caption: "😘" }
+            ],
+            "October": [
+                { url: "https://i.postimg.cc/jSLTDN0c/pic1_t10.png", caption: "Kawaii 🥰" },
+                { url: "https://i.postimg.cc/bwsPZbcT/pic2_t10.png", caption: "Adorable ❤️" },
+                { url: "https://i.postimg.cc/BnX3jD9B/pic3_t10.png", caption: "Kiss kiss 💋" },
+                { url: "https://i.postimg.cc/9XZBpLZ2/pic4_t10.png", caption: "Bunny 🐰" },
+                { url: "https://i.postimg.cc/zDKkjxKY/pic5_t10.png", caption: "Little crazy 🤪" },
+                { url: "https://i.postimg.cc/VsnFRKn8/pic6_t10.png", caption: "Precious" },
+                { url: "https://i.postimg.cc/GmHR4YwV/pic7_t10.png", caption: "🏆 Teen Creator 2025" },
+                { url: "./video/video1_t10.mp4", caption: "Chill chill get home" },
+            ],
+            "November": [
+                { url: "./video/videot11.mp4", caption: "Cool" },
+                { url: "https://i.postimg.cc/ZqvNqqxV/pic1_t11.png", caption: "(❤️ ω ❤️)" },
+                { url: "https://i.postimg.cc/mr19rryX/pic2_t11.png", caption: "(★ ω ★)" },
+                { url: "https://i.postimg.cc/rpR4ppNZ/pic3_t11.png", caption: "(^◕.◕^)" },
+                { url: "https://i.postimg.cc/zv2DWCJ2/pic4_t11.png", caption: "Meow 😸" },
+                { url: "https://i.postimg.cc/5tQzttSs/pic5_t11.png", caption: "(*✧×✧*)" },
+                { url: "./video/video1_t11.mp4", caption: "UwU" }
+            ],
+            "December": [
+                { url: "https://i.postimg.cc/5yybxXwY/pic1_t12.png", caption: "Beautiful 💕" },
+                { url: "https://i.postimg.cc/zvv8Jyn3/pic2_t12.png", caption: "Angel 🪽" },
+                { url: "https://i.postimg.cc/T11fRKrK/pic3_t12.png", caption: "Gorgeous ✨" },
+                { url: "https://i.postimg.cc/NFFBgK15/pic4_t12.png", caption: "Stunning ❤️‍🔥" },
+                { url: "./video/video1_t12.mp4", caption: "Still cute 💖" },
+                { url: "./video/video2_t12.mp4", caption: "Hi ✌️" }
+            ]
+        };
+
+        const monthNotes = {
+            "January": ["Những tháng đầu hình về mấy ng hok đc nhìu.", "Chạm ảnh để phóng to nha."],
+            "February": ["Tấm mặt mộc duy nhất nè."],
+            "March": ["Album chọn lọc mấy tấm dịu dịu nhất 😑."], 
+            "April": ["Moment cute hok thể quên 🙄."],
+            "May": ["🤍❤️🩵🖤"],
+            "June": ["Tầm giữa năm hình nhiều hơn tí.", "Thứ tự ảnh có thể hơi lệch xíu nha."],
+            "July": ["Lúc này có mấy tattoo mới nè.", "Đẹp mà cũng hơi dằm khăm."],
+            "August": ["Vibe nàng thơ 🤍."],
+            "September": ["Mấy tấm này để icon thay lời muốn nói nha."],
+            "October": ["Tháng này có 2 sự kiện lớn.", "Teen Creator of the Year 2025!"],
+            "November": ["Tháng nghỉ ngơi sau update."],
+            "December": ["Tóc mới nè.", "Mong năm sau tụi mình có nhiều hình hơn nữa."]
+        };
+
+        const months = Object.keys(albumData);
+        const book = document.getElementById('myBook');
+
+        function isVideo(url) {
+            return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video');
+        }
+
+        function createGridHTML(monthName, dataArray, noteText = "") {
+            if (!dataArray || dataArray.length === 0) {
+                return `<h2 class="month-title">${monthName}</h2><div class="page-note">${noteText}</div>`;
+            }
+            return `
+                <h2 class="month-title">${monthName}</h2>
+                <div class="polaroid-grid">
+                    ${dataArray.map((item, i) => {
+                        const captionText = item.caption || "2025 Memory";
+                        if (isVideo(item.url)) {
+                            return `<div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
+                                <video src="${item.url}" muted loop autoplay playsinline class="zoomable-video"></video>
+                                <small>${captionText}</small>
+                            </div>`;
+                        } else {
+                            return `<div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
+                                <img src="${item.url}" class="zoomable">
+                                <small>${captionText}</small>
+                            </div>`;
+                        }
+                    }).join('')}
+                </div>
+                <div class="page-note">${noteText}</div>
+            `;
+        }
+
+        document.getElementById('jan-first-half').innerHTML = createGridHTML("January", albumData["January"].slice(0, 4), monthNotes["January"][0]);
+
+        months.forEach((m, index) => {
+            const p = document.createElement('div');
+            p.className = 'page';
+            p.style.zIndex = 50 - index;
+            const note2 = (monthNotes[m] && monthNotes[m][1]) ? monthNotes[m][1] : "";
+            const frontHTML = `<div class="front">${createGridHTML(m, albumData[m].slice(4, 8), note2)}</div>`;
+            let backHTML = '<div class="back"></div>';
+            if (index < months.length - 1) {
+                const nextM = months[index+1];
+                const note1 = (monthNotes[nextM] && monthNotes[nextM][0]) ? monthNotes[nextM][0] : "";
+                backHTML = `<div class="back">${createGridHTML(nextM, albumData[nextM].slice(0, 4), note1)}</div>`;
+            } else {
+                backHTML = `<div class="back">
+                    <h2 class="month-title">Closing Words</h2>
+                    <img src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable">
+                    <p class="desc">Thêm một năm gắn bó với nhau. Mong là tương lai tụi mình có thể gắn bó lâu hơn nữa.</p>
+                    <span class="sticker">❤️</span>
+                </div>`;
+            }
+            p.innerHTML = frontHTML + backHTML;
+            book.appendChild(p);
+        });
+
+        const summaryPage = document.createElement('div');
+        summaryPage.className = 'page';
+        summaryPage.style.zIndex = 10;
+        summaryPage.innerHTML = `
+            <div class="front" style="overflow-y: auto;">
+                <h2 class="month-title">Moments</h2>
+                <div class="voice-card">
+                    <p style="font-size:0.75rem;">🎧 Nghe thử voice ngắn của tui nha...</p>
+                    <button id="btn-voice-play" class="btn-voice"><span>▶</span> Nghe Voice</button>
+                    <audio id="voice-message"><source src="./voice/voice.m4a" type="audio/mpeg"></audio>
+                </div>
+                <div class="video-card">
+                    <p style="font-size:0.75rem;">🎬 Thước phim ngắn tặng mấy ng</p>
+                    <div class="video-container">
+                        <video width="100%" controls><source src="./video/thanks.mp4" type="video/mp4"></video>
+                    </div>
+                </div>
+            </div>
+            <div class="back">
+                <h2 class="month-title">A Little Message</h2>
+                <img src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable">
+                <p class="desc">Chúc Trang năm mới vui vẻ, may mắn, công việc thuận lợi và luôn hạnh phúc.</p>
+            </div>
+        `;
+        book.appendChild(summaryPage);
+
+        const finalPage = document.createElement('div');
+        finalPage.className = 'page';
+        finalPage.style.zIndex = 5;
+        finalPage.innerHTML = `
+            <div class="front cover-front" style="padding: 20px;">
+                <h2 style="font-family:'Dancing Script'; color:var(--accent-color); font-size: 1.8rem;">Gửi 2026</h2>
+                <textarea id="note-2026" placeholder="Viết mục tiêu năm mới vào đây..."></textarea>
+                <button id="btn-close" style="margin-top: 15px; padding: 12px; cursor: pointer; border: none; width: 100%; background: var(--accent-color); font-weight: bold; font-family: 'Montserrat';">TẠM BIỆT 2025</button>
+            </div>
+            <div class="back cover-front"><h1>THE END</h1><p>2025</p></div>
+        `;
+        book.appendChild(finalPage);
+
+        const modal = document.getElementById('image-modal');
+        const modalContainer = document.getElementById('modal-container');
+
+        function initActions() {
+            const allPages = document.querySelectorAll('.page');
+            allPages.forEach((page, index) => {
+                const originalZ = parseInt(page.style.zIndex);
+                page.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || (e.target.tagName === 'VIDEO' && e.target.hasAttribute('controls')) || e.target.closest('.music-player')) return;
+                    if (e.target.tagName === 'IMG' || (e.target.tagName === 'VIDEO' && !e.target.hasAttribute('controls'))) {
+                        e.stopPropagation();
+                        modal.style.display = "flex";
+                        modalContainer.innerHTML = "";
+                        const el = document.createElement(e.target.tagName === 'VIDEO' ? 'video' : 'img');
+                        el.src = e.target.src; if(e.target.tagName === 'VIDEO') el.controls = true;
+                        el.className = "modal-content"; modalContainer.appendChild(el);
+                        return;
+                    }
+                    if (this.classList.contains('flipped')) {
+                        this.classList.remove('flipped');
+                        setTimeout(() => { this.style.zIndex = originalZ; }, 400); 
+                    } else {
+                        this.classList.add('flipped');
+                        this.style.zIndex = 100 + index;
+                    }
+                });
+            });
+            modal.onclick = () => { modal.style.display = "none"; };
+        }
+        setTimeout(initActions, 100);
+
+        /* NHẠC NỀN */
+        const playlist = [
+            { title: "Make It Right", src: "./music/Make_It_Right.mp3" },
+            { title: "Love On Replay", src: "./music/Love_On_Replay.mp3" },
+            { title: "golden hour", src: "./music/golden_hour.mp3" },
+            { title: "No Reason", src: "./music/No_Reason.mp3" },
+            { title: "Cho Em An Toàn", src: "./music/Cho_Em_An_Toan.mp3" }
+        ];
+        let currentSongIndex = 0;
+        const bgMusic = document.getElementById('bg-music');
+        const songTitle = document.getElementById('song-title');
+        const playBtn = document.getElementById('play-pause');
+        const nextBtn = document.getElementById('next-song');
+        const prevBtn = document.getElementById('prev-song');
+
+        function loadSong(index) { bgMusic.src = playlist[index].src; songTitle.innerText = playlist[index].title; }
+        function playSong() { bgMusic.play().catch(() => {}); playBtn.innerText = "⏸"; }
+        playBtn.addEventListener('click', () => { if (bgMusic.paused) playSong(); else { bgMusic.pause(); playBtn.innerText = "▶"; } });
+        nextBtn.addEventListener('click', () => { currentSongIndex = (currentSongIndex + 1) % playlist.length; loadSong(currentSongIndex); playSong(); });
+        prevBtn.addEventListener('click', () => { currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length; loadSong(currentSongIndex); playSong(); });
+        bgMusic.addEventListener('ended', () => nextBtn.click());
+        loadSong(currentSongIndex);
+
+        /* WELCOME */
+        const welcomeText = "Hey\nMột năm nữa lại trôi qua\nTui làm một album nhỏ tặng mấy ng\nMong là mấy ng sẽ thích nó ✨";
+        let charIdx = 0;
+        function typeWriter() {
+            if (charIdx < welcomeText.length) {
+                document.getElementById("typewriter").innerHTML += welcomeText.charAt(charIdx) === '\n' ? '<br>' : welcomeText.charAt(charIdx);
+                charIdx++; setTimeout(typeWriter, 50);
+            } else { document.getElementById("btn-start").classList.add("fade-in"); }
+        }
+        window.onload = typeWriter;
+
+        document.getElementById('btn-start').addEventListener('click', () => {
+            document.getElementById('welcome-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('welcome-screen').classList.add('hidden');
+                document.getElementById('book-container').style.display = 'flex';
+                playSong();
+            }, 1000);
+        });
+
+        /* SNOW */
+        const snowCanvas = document.getElementById('snow-canvas');
+        const sctx = snowCanvas.getContext('2d');
+        function resizeSnow() { snowCanvas.width = window.innerWidth; snowCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeSnow); resizeSnow();
+        let snowParticles = Array.from({length: 50}, () => ({ x: Math.random()*innerWidth, y: Math.random()*innerHeight, r: Math.random()*3+1, s: Math.random()*1+0.5 }));
+        function animateSnow() {
+            sctx.clearRect(0,0,innerWidth,innerHeight);
+            snowParticles.forEach(p => {
+                p.y += p.s; if(p.y > innerHeight) p.y = -10;
+                sctx.beginPath(); sctx.arc(p.x, p.y, p.r, 0, Math.PI*2); sctx.fillStyle = "white"; sctx.fill();
+            });
+            requestAnimationFrame(animateSnow);
+        }
+        animateSnow();
+
+        /* FIREWORKS & CLOSE */
+        document.getElementById('btn-close').addEventListener('click', () => {
+            const fCanvas = document.getElementById('fireworks-canvas');
+            const fctx = fCanvas.getContext('2d');
+            document.getElementById('myBook').style.transform = "scale(0)";
+            document.getElementById('myBook').style.opacity = "0";
+            setTimeout(() => {
+                document.getElementById('book-container').style.display = "none";
+                fCanvas.style.display = "block"; 
+                document.getElementById('happy-new-year-text').style.display = "block";
+                setTimeout(() => document.getElementById('happy-new-year-text').classList.add('show'), 100);
+                fCanvas.width = innerWidth; fCanvas.height = innerHeight;
+                let fw = [];
+                function animateFW() {
+                    fctx.fillStyle = 'rgba(15, 23, 42, 0.2)'; fctx.fillRect(0,0,innerWidth, innerHeight);
+                    if (Math.random() < 0.1) {
+                        let x = Math.random()*innerWidth, y = Math.random()*innerHeight*0.5, color = `hsl(${Math.random()*360}, 100%, 50%)`;
+                        for(let i=0; i<30; i++) fw.push({x, y, color, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8, a:1});
+                    }
+                    fw.forEach((p, i) => {
+                        p.x += p.vx; p.y += p.vy; p.a -= 0.01;
+                        if(p.a<=0) fw.splice(i,1);
+                        else { fctx.globalAlpha=p.a; fctx.beginPath(); fctx.arc(p.x, p.y, 2, 0, Math.PI*2); fctx.fillStyle=p.color; fctx.fill(); }
+                    });
+                    requestAnimationFrame(animateFW);
+                }
+                animateFW();
+            }, 800);
+        });
+
+        document.addEventListener('click', (e) => {
+            if(e.target && e.target.id == 'btn-voice-play'){
+                const v = document.getElementById('voice-message');
+                if(v.paused) { v.play(); e.target.innerHTML = "<span>⏸</span> Đang Phát"; }
+                else { v.pause(); e.target.innerHTML = "<span>▶</span> PLAY"; }
+            }
+        });
+    </script>
+</body>
+</html>
