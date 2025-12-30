@@ -462,7 +462,7 @@
                     <div class="front">
                         <h2 class="month-title">Opening Words</h2>
                         <p class="desc" style="font-size: 1.1rem; text-align: left;">Dear Trang 2025,<br>
-                            <br> Lúc đầu muốn tặng gì đó cho mấy ng vào cuối năm, xong hok bik tặng gì, rồi có ý tưởng là làm một cuốn album về mấy ng trong một năm qua.<br>
+                            <br> Lúc đầu muốn tặng gì đó cho mấy ng, xong hok bik tặng gì, rồi có ý tưởng là làm một cuốn album về mấy ng trong một năm qua.<br>
                             <br> Chiếc album nhỏ này tui làm tổng hợp các hình ảnh từ social, pm về mấy ng một năm qua.<br>
                             <br> Phần nhạc coi như tôi đánh cược ik, tuy đc cho tên nhạc rồi, nhưng tui chọn nhạc theo cảm tính, mong là sẽ tâm đầu ý hợp với gu nhạc của mấy ng. Tui có add thêm 1 bài khác vô, cho là bài này sẽ nói ra một chút tấm lòng của tui dành cho mấy ng.<br>
                             <br> Đây là lần đầu tiên tui làm cái này, nếu có sai sót gì hãy bỏ qua cho tui.</p>
@@ -1062,14 +1062,29 @@
             }, 1000);
         });
 
+        // --- XỬ LÝ VOICE PLAYER (FIXED) ---
         document.addEventListener('click', function(e) {
-            if(e.target && e.target.id == 'btn-voice-play'){
+            // Dùng closest để bắt sự kiện kể cả khi click vào thẻ span (icon) bên trong button
+            const btn = e.target.closest('#btn-voice-play');
+            
+            if (btn) {
                 const v = document.getElementById('voice-message');
-                if(v.paused) { v.play(); e.target.innerHTML = "<span>⏸</span> Đang Phát"; }
-                else { v.pause(); e.target.innerHTML = "<span>▶</span> PLAY"; }
+                if (!v) return;
+
+                // Thêm sự kiện tự động reset nút khi hết nhạc
+                v.onended = function() {
+                    btn.innerHTML = "<span>▶</span> Nghe Voice";
+                };
+
+                if (v.paused) {
+                    v.play();
+                    btn.innerHTML = "<span>⏸</span> Đang Phát";
+                } else {
+                    v.pause(); // Cho phép dừng
+                    btn.innerHTML = "<span>▶</span> Nghe Voice"; // Quay lại trạng thái ban đầu
+                }
             }
         });
     </script>
 </body>
 </html>
-
