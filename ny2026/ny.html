@@ -101,7 +101,7 @@
             color: var(--bg-color);
         }
 
-        /* ZOOM CONTROLS */
+        /* ZOOM CONTROLS (PC ONLY) */
         .zoom-controls {
             position: fixed;
             top: 20px;
@@ -133,14 +133,14 @@
             .zoom-controls { display: none; } 
         }
 
-        /* BOOK STRUCTURE - OPTIMIZED */
+        /* BOOK STRUCTURE */
         .book-container { 
-            perspective: 2500px; /* Tăng perspective để mượt hơn */
+            perspective: 2000px; 
             display: none; 
             z-index: 10;
             transition: transform 0.1s ease-out;
             transform-origin: center center;
-            will-change: transform;
+            will-change: transform; /* Tối ưu hóa render khi zoom */
         }
 
         .book {
@@ -161,26 +161,23 @@
             transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
             cursor: pointer;
             user-select: none;
-            will-change: transform; /* Ép GPU render trang */
         }
 
         .front, .back {
             position: absolute;
-            width: 101%; height: 100%; /* Tăng 1% chiều rộng để che lấp khe hở (tránh nhánh xanh) */
+            width: 100%; height: 100%;
             top: 0; left: 0;
             backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
             padding: 30px;
             background: var(--paper-color);
             border: 1px solid #dcd3c7;
             display: flex;
             flex-direction: column;
             box-shadow: inset 3px 0 10px rgba(0,0,0,0.1);
-            transform: translateZ(0); /* Chống flickering */
         }
 
         .back { 
-            transform: rotateY(180deg) translateZ(1px); /* Đẩy nhẹ trục Z để tránh trùng mặt */
+            transform: rotateY(180deg); 
             background: #ede6d8; 
             box-shadow: inset -3px 0 10px rgba(0,0,0,0.1);
         }
@@ -303,7 +300,7 @@
             padding-top: 10px;
         }
 
-        /* MODAL */
+        /* ZOOM MODAL STYLES */
         .image-modal {
             display: none;
             position: fixed;
@@ -327,6 +324,7 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes zoomIn { from { transform: scale(0.8); } to { transform: scale(1); } }
 
+        /* VOICE & VIDEO */
         .voice-card, .video-card {
             background: rgba(169, 132, 103, 0.1);
             border: 1px dashed var(--secondary-color);
@@ -425,10 +423,11 @@
     </div>
 
     <script>
+        // CÁC BIẾN TOÀN CỤC CHO ZOOM
         let currentScale = 0.5;
         const minScale = 0.2;
         const maxScale = 3;
-        let isPinching = false; 
+        let isPinching = false; // Flag chặn click khi đang zoom
 
         const albumData = {
             "January": [
@@ -521,39 +520,61 @@
                 "Những tháng đầu hình về mấy ng hok đc nhìu.",
                 "Lúc đưa hình vô đây có bị bóp, cắt bớt ảnh, nên tui có thêm tính năng phóng to ảnh, phòng trường hợp cần xem ảnh rõ hơn."
             ],
-            "February": ["Tấm mặt mộc duy nhất, hôm đó chắc say quá xong gửi cho tui xem."],
+            "February": [
+                "Tấm mặt mộc duy nhất, hôm đó chắc say quá xong gửi cho tui xem."
+            ],
             "March": ["Album này tui chọn lọc mấy tấm nhìn dịu dịu, kín đáo nhất có thể 😑."], 
             "April": ["Moment cute hok thể quên 🙄."],
             "May": ["🤍❤️🩵🖤"],
-            "June": ["Tầm giữa năm mới tổng hợp đc nhìu hình hơn tí.", "Có tháng hình nhiều, nên là mấy tháng sau có ảnh xếp hok đúng tháng, nên cũng đừng để ý quá nha."],
-            "July": ["Lúc này chơi với bn xong có mấy tatto mới.", "Vừa đẹp mà cũng hơi dằm khăm."],
+            "June": ["Tầm giữa năm mới tổng hợp đc nhìu hình hơn tí.", 
+            "Có tháng hình nhiều, nên là mấy tháng sau có ảnh xếp hok đúng tháng, nên cũng đừng để ý quá nha."],
+            "July": ["Lúc này chơi với bn xong có mấy tatto mới.",
+            "Vừa đẹp mà cũng hơi dằm khăm."
+            ],
             "August": ["Vibe nàng thơ 🤍."],
             "September": ["Có những hình hok bik ghi gì, nên để icon thay tạm nha."],
-            "October": ["Tháng này 2 có sự kiện. 1 là update bản thân.", "2 là được đề cử hạng mục Teen Creator of the Year tại xHamster Awards 2025."],
+            "October": ["Tháng này 2 có sự kiện. 1 là update bản thân.", 
+            "2 là được đề cử hạng mục Teen Creator of the Year tại xHamster Awards 2025."],
             "November": ["Tháng này đang trong khoảng thgian nghỉ ngơi sau update."],
-            "December": ["Tóc mới", "Đây là những gì tui tổng hợp được.\n Mong là năm sau sẽ tổng hợp được nhiều hơn"]
+            "December": ["Tóc mới", 
+            "Đây là những gì tui tổng hợp được.\n Mong là năm sau sẽ tổng hợp được nhiều hơn"
+        ]
         };
 
         const months = Object.keys(albumData);
         const book = document.getElementById('myBook');
 
-        function isVideo(url) { return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video'); }
+        function isVideo(url) {
+            return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video');
+        }
 
         function createGridHTML(monthName, dataArray, noteText = "") {
-            if (!dataArray || dataArray.length === 0) return `<h2 class="month-title">${monthName}</h2><div class="page-note">${noteText}</div>`;
+            if (!dataArray || dataArray.length === 0) {
+                return `<h2 class="month-title">${monthName}</h2><div class="page-note">${noteText}</div>`;
+            }
+
             return `
                 <h2 class="month-title">${monthName}</h2>
                 <div class="polaroid-grid">
                     ${dataArray.map((item, i) => {
                         const captionText = item.caption || "2025 Memory";
                         if (isVideo(item.url)) {
-                            return `<div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}"><video src="${item.url}" muted loop autoplay playsinline class="zoomable-video"></video><small>${captionText}</small></div>`;
+                            return `
+                                <div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
+                                    <video src="${item.url}" muted loop autoplay playsinline class="zoomable-video"></video>
+                                    <small>${captionText}</small>
+                                </div>`;
                         } else {
-                            return `<div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}"><img src="${item.url}" class="zoomable"><small>${captionText}</small></div>`;
+                            return `
+                                <div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
+                                    <img src="${item.url}" class="zoomable">
+                                    <small>${captionText}</small>
+                                </div>`;
                         }
                     }).join('')}
                 </div>
-                <div class="page-note">${noteText}</div>`;
+                <div class="page-note">${noteText}</div>
+            `;
         }
 
         document.getElementById('jan-first-half').innerHTML = createGridHTML("January", albumData["January"].slice(0, 4), monthNotes["January"][0]);
@@ -562,15 +583,25 @@
             const p = document.createElement('div');
             p.className = 'page';
             p.style.zIndex = 50 - index;
+            
             const note2 = (monthNotes[m] && monthNotes[m][1]) ? monthNotes[m][1] : "";
             const frontHTML = `<div class="front">${createGridHTML(m, albumData[m].slice(4, 8), note2)}</div>`;
+            
             let backHTML = '<div class="back"></div>';
             if (index < months.length - 1) {
                 const nextM = months[index+1];
                 const note1 = (monthNotes[nextM] && monthNotes[nextM][0]) ? monthNotes[nextM][0] : "";
                 backHTML = `<div class="back">${createGridHTML(nextM, albumData[nextM].slice(0, 4), note1)}</div>`;
             } else {
-                backHTML = `<div class="back"><h2 class="month-title">Closing Words</h2><img src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable"><p class="desc">Thêm một năm gắn bó với nhau. Trong thời gian qua cũng có lúc tụi mình bất đồng với nhau, xong cũng làm lành.<br>Tui cũng chỉ mong là trong tương lai tụi mình có thể gắn bó với nhau nhiều hơn, lâu hơn nữa.</p><span class="sticker">❤️</span></div>`;
+                backHTML = `
+                    <div class="back">
+                        <h2 class="month-title">Closing Words</h2>
+                        <img src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable">
+                        <p class="desc">Thêm một năm gắn bó với nhau. Trong thời gian qua cũng có lúc tụi mình bất đồng với nhau, xong cũng làm lành.
+                            <br>Tui cũng chỉ mong là trong tương lai tụi mình có thể gắn bó với nhau nhiều hơn, lâu hơn nữa.</p>
+                        <span class="sticker">❤️</span>
+                    </div>
+                `;
             }
             p.innerHTML = frontHTML + backHTML;
             book.appendChild(p);
@@ -579,13 +610,41 @@
         const summaryPage = document.createElement('div');
         summaryPage.className = 'page';
         summaryPage.style.zIndex = 10;
-        summaryPage.innerHTML = `<div class="front" style="overflow-y: auto;"><h2 class="month-title">Share Little Moments</h2><div class="voice-card"><p style="font-size:0.8rem; font-weight:bold;">🎧 Tui có voice 1 đoạn ngắn, muốn có thể nghe thử, hok thì skip nha, hok lại cringe cringe gây mất ngủ đó 🙄 </p><button id="btn-voice-play" class="btn-voice"><span>▶</span> Nghe Voice</button><audio id="voice-message"><source src="./voice/voice.m4a" type="audio/mpeg"></audio></div><div class="video-card"><p style="font-size:0.8rem; font-weight:bold;">🎬 Thước phim ngắn tui muốn share với mấy ng</p><div class="video-container"><video width="100%" controls><source src="./video/thanks.mp4" type="video/mp4"></video></div></div></div><div class="back"><h2 class="month-title">A Little Message</h2><img src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable"><p class="desc">Một năm qua vui có, buồn có, nhưng cũng là một năm đáng nhớ. Bỏ qua mọi muộn phiền của năm nay, chuẩn bị hành trang cho một năm mới.<br>Chúc Trang năm mới vui vẻ, gặp nhiều may mắn, công viêc thuận lợi, gia đình bình an và hạnh phúc.</p></div>`;
+        summaryPage.innerHTML = `
+            <div class="front" style="overflow-y: auto;">
+                <h2 class="month-title">Share Little Moments</h2>
+                <div class="voice-card">
+                    <p style="font-size:0.8rem; font-weight:bold;">🎧 Tui có voice 1 đoạn ngắn, muốn có thể nghe thử, hok thì skip nha, hok lại cringe cringe gây mất ngủ đó 🙄 </p>
+                    <button id="btn-voice-play" class="btn-voice"><span>▶</span> Nghe Voice</button>
+                    <audio id="voice-message"><source src="./voice/voice.m4a" type="audio/mpeg"></audio>
+                </div>
+                <div class="video-card">
+                    <p style="font-size:0.8rem; font-weight:bold;">🎬 Thước phim ngắn tui muốn share với mấy ng</p>
+                    <div class="video-container">
+                        <video width="100%" controls><source src="./video/thanks.mp4" type="video/mp4"></video>
+                    </div>
+                </div>
+            </div>
+            <div class="back">
+                <h2 class="month-title">A Little Message</h2>
+                <img src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable">
+                <p class="desc">Một năm qua vui có, buồn có, nhưng cũng là một năm đáng nhớ. Bỏ qua mọi muộn phiền của năm nay, chuẩn bị hành trang cho một năm mới.
+                    <br>Chúc Trang năm mới vui vẻ, gặp nhiều may mắn, công viêc thuận lợi, gia đình bình an và hạnh phúc.</p>
+            </div>
+        `;
         book.appendChild(summaryPage);
 
         const finalPage = document.createElement('div');
         finalPage.className = 'page';
         finalPage.style.zIndex = 5;
-        finalPage.innerHTML = `<div class="front cover-front" style="padding: 20px;"><h2 style="font-family:'Dancing Script'; color:var(--accent-color); font-size: 2rem;">Gửi 2026</h2><textarea id="note-2026" placeholder="Mấy ng có thể viết những ước nguyện, mục tiêu của mình trong năm mới vào đây..."></textarea><button id="btn-close" style="margin-top: 15px; padding: 12px; cursor: pointer; border: none; width: 100%; background: var(--accent-color); font-weight: bold; font-family: 'Montserrat';">TẠM BIỆT 2025</button></div><div class="back cover-front"><h1>THE END</h1><p>2025</p></div>`;
+        finalPage.innerHTML = `
+            <div class="front cover-front" style="padding: 20px;">
+                <h2 style="font-family:'Dancing Script'; color:var(--accent-color); font-size: 2rem;">Gửi 2026</h2>
+                <textarea id="note-2026" placeholder="Mấy ng có thể viết những ước nguyện, mục tiêu của mình trong năm mới vào đây..."></textarea>
+                <button id="btn-close" style="margin-top: 15px; padding: 12px; cursor: pointer; border: none; width: 100%; background: var(--accent-color); font-weight: bold; font-family: 'Montserrat';">TẠM BIỆT 2025</button>
+            </div>
+            <div class="back cover-front"><h1>THE END</h1><p>2025</p></div>
+        `;
         book.appendChild(finalPage);
 
         const modal = document.getElementById('image-modal');
@@ -597,7 +656,9 @@
                 const originalZ = parseInt(page.style.zIndex);
 
                 page.addEventListener('click', function(e) {
+                    // NẾU ĐANG ZOOM (PINCHING) THÌ KHÔNG CHO CLICK
                     if (isPinching) return;
+
                     if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || (e.target.tagName === 'VIDEO' && e.target.hasAttribute('controls')) || e.target.closest('.music-player')) return;
                     
                     if (e.target.tagName === 'IMG' || (e.target.tagName === 'VIDEO' && !e.target.hasAttribute('controls'))) {
@@ -614,14 +675,12 @@
                         return;
                     }
 
-                    // Tối ưu hóa Z-INDEX khi lật: trang đang lật phải luôn nằm trên cùng
                     if (this.classList.contains('flipped')) {
-                        this.style.zIndex = 100 + index; // Giữ z-index cao khi bắt đầu lật ngược lại
                         this.classList.remove('flipped');
-                        setTimeout(() => { this.style.zIndex = originalZ; }, 800); 
+                        setTimeout(() => { this.style.zIndex = originalZ; }, 400); 
                     } else {
-                        this.style.zIndex = 100 + index; // Đưa lên trên ngay lập tức
                         this.classList.add('flipped');
+                        this.style.zIndex = 100 + index;
                     }
                 });
             });
@@ -629,37 +688,60 @@
         }
         setTimeout(initActions, 100);
 
-        // ZOOM LOGIC
+        /* --- ZOOM LOGIC (CẢI TIẾN) --- */
         const bookContainer = document.getElementById('book-container');
-        function updateZoom() { bookContainer.style.transform = `scale(${currentScale})`; }
+
+        function updateZoom() {
+            bookContainer.style.transform = `scale(${currentScale})`;
+        }
+
+        // PC: Buttons
         document.getElementById('zoom-in').onclick = () => { if(currentScale < maxScale) { currentScale += 0.2; updateZoom(); } };
         document.getElementById('zoom-out').onclick = () => { if(currentScale > minScale) { currentScale -= 0.2; updateZoom(); } };
         document.getElementById('zoom-reset').onclick = () => { currentScale = 1; updateZoom(); };
 
-        // PINCH TO ZOOM
+        // MOBILE: Pinch-to-zoom (Mượt hơn)
         let initialDistance = null;
         let startScale = currentScale;
+
         window.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
-                isPinching = true;
-                initialDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                isPinching = true; // Bật flag chặn click
+                initialDistance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
                 startScale = currentScale;
             }
         }, { passive: false });
+
         window.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2 && initialDistance !== null) {
                 e.preventDefault();
-                const currentDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                const currentDistance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                
                 const delta = currentDistance / initialDistance;
                 let newScale = startScale * delta;
-                if (newScale >= minScale && newScale <= maxScale) { currentScale = newScale; updateZoom(); }
+                
+                if (newScale >= minScale && newScale <= maxScale) {
+                    currentScale = newScale;
+                    updateZoom();
+                }
             }
         }, { passive: false });
+
         window.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) { initialDistance = null; setTimeout(() => { isPinching = false; }, 200); }
+            if (e.touches.length < 2) {
+                initialDistance = null;
+                // Đợi 200ms sau khi thả tay mới cho phép click lại để tránh "ghost click"
+                setTimeout(() => { isPinching = false; }, 200);
+            }
         });
 
-        // MUSIC
+        /* --- NHẠC NỀN --- */
         const playlist = [
             { title: "Make It Right", src: "./music/Make_It_Right.mp3" },
             { title: "Love On Replay", src: "./music/Love_On_Replay.mp3" },
@@ -667,21 +749,45 @@
             { title: "No Reason", src: "./music/No_Reason.mp3" },
             { title: "Cho Em An Toàn", src: "./music/Cho_Em_An_Toan.mp3" }
         ];
+        
         let currentSongIndex = 0;
         const bgMusic = document.getElementById('bg-music');
         const songTitle = document.getElementById('song-title');
         const playBtn = document.getElementById('play-pause');
         const nextBtn = document.getElementById('next-song');
         const prevBtn = document.getElementById('prev-song');
-        function loadSong(index) { if(playlist[index]) { bgMusic.src = playlist[index].src; songTitle.innerText = playlist[index].title; } }
-        function playSong() { bgMusic.play().catch(e => console.log("Music ready")); playBtn.innerText = "⏸"; }
-        playBtn.addEventListener('click', () => { if (bgMusic.paused) playSong(); else { bgMusic.pause(); playBtn.innerText = "▶"; } });
-        nextBtn.addEventListener('click', () => { currentSongIndex = (currentSongIndex + 1) % playlist.length; loadSong(currentSongIndex); playSong(); });
-        prevBtn.addEventListener('click', () => { currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length; loadSong(currentSongIndex); playSong(); });
+
+        function loadSong(index) { 
+            bgMusic.src = playlist[index].src; 
+            songTitle.innerText = playlist[index].title; 
+        }
+
+        function playSong() {
+            bgMusic.play().catch(e => console.log("Cần tương tác để phát nhạc"));
+            playBtn.innerText = "⏸";
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (bgMusic.paused) { playSong(); }
+            else { bgMusic.pause(); playBtn.innerText = "▶"; }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentSongIndex = (currentSongIndex + 1) % playlist.length;
+            loadSong(currentSongIndex);
+            playSong();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
+            loadSong(currentSongIndex);
+            playSong();
+        });
+
         bgMusic.addEventListener('ended', () => { nextBtn.click(); });
         loadSong(currentSongIndex);
 
-        // WELCOME
+        /* --- WELCOME --- */
         const welcomeText = "Hey\nMột năm nữa lại trôi qua\nTui có làm một album nhỏ về mấy ng, mình cùng xem nha\n Mong là mấy ng sẽ thích nó";
         let charIdx = 0;
         function typeWriter() {
@@ -691,6 +797,7 @@
             } else { document.getElementById("btn-start").classList.add("fade-in"); }
         }
         window.onload = typeWriter;
+
         document.getElementById('btn-start').addEventListener('click', () => {
             document.getElementById('welcome-screen').style.opacity = '0';
             setTimeout(() => {
@@ -700,7 +807,7 @@
             }, 1000);
         });
 
-        // SNOW
+        /* --- SNOW --- */
         const snowCanvas = document.getElementById('snow-canvas');
         const sctx = snowCanvas.getContext('2d');
         let snowParticles = [];
@@ -716,7 +823,7 @@
         function animateSnow() { sctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height); snowParticles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateSnow); }
         animateSnow();
 
-        // FIREWORKS
+        /* --- FIREWORKS & CLOSE --- */
         document.getElementById('btn-close').addEventListener('click', () => {
             const fCanvas = document.getElementById('fireworks-canvas');
             const fctx = fCanvas.getContext('2d');
@@ -750,7 +857,7 @@
             if(e.target && e.target.id == 'btn-voice-play'){
                 const v = document.getElementById('voice-message');
                 if(v.paused) { v.play(); e.target.innerHTML = "<span>⏸</span> Đang Phát"; }
-                else { v.pause(); e.target.innerHTML = "<span>▶</span> Nghe Voice"; }
+                else { v.pause(); e.target.innerHTML = "<span>▶</span> PLAY"; }
             }
         });
     </script>
