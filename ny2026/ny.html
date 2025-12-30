@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TRANG 2025 ALBUM</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Montserrat:wght@300;400&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
     <style>
@@ -14,17 +14,29 @@
             --secondary-color: #a98467; 
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        /* Chặn chọn văn bản và menu ngữ cảnh trên toàn trang */
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            -webkit-touch-callout: none; /* iOS: chặn menu khi giữ lâu */
+            -webkit-user-select: none;   /* Chrome/Safari: chặn chọn text */
+            user-select: none; 
+        }
+
+        /* Cho phép chọn text ở input/textarea */
+        input, textarea { -webkit-user-select: auto; user-select: auto; }
 
         body {
             background-color: var(--bg-color);
             background: radial-gradient(ellipse at center, #1e293b 0%, #0f172a 100%);
             font-family: 'Dancing Script', cursive;
             color: var(--text-color);
-            overflow: hidden; /* Ngăn cuộn trang mặc định để xử lý zoom/pan thủ công */
+            overflow: hidden; 
             width: 100vw;
             height: 100vh;
-            touch-action: none; /* Quan trọng cho việc kéo thả */
+            touch-action: none; /* Quan trọng: Chặn trình duyệt can thiệp vào vuốt/kéo */
+            overscroll-behavior: none; /* Chặn hiệu ứng kéo nảy của iOS */
+            position: fixed; /* Cố định body để tránh rung lắc */
         }
 
         /* KHUNG CHỨA TOÀN BỘ ĐỂ ZOOM/PAN */
@@ -36,7 +48,8 @@
             align-items: center;
             overflow: visible;
             transform-origin: center center;
-            transition: transform 0.1s ease-out; /* Mượt mà khi pan */
+            transition: transform 0.1s linear; /* Đổi sang linear để mượt hơn khi drag */
+            will-change: transform; /* Tối ưu GPU */
         }
 
         /* CANVAS EFFECTS */
@@ -62,9 +75,9 @@
 
         #happy-new-year-text h1 {
             font-family: 'Dancing Script', cursive;
-            font-size: 4rem; /* Giảm size chút cho mobile */
+            font-size: 3.5rem; /* Giảm nhẹ size cho mobile */
             color: var(--accent-color);
-            text-shadow: 0 0 20px rgba(238, 188, 81, 0.8), 0 0 40px rgba(238, 188, 81, 0.4);
+            text-shadow: 0 0 20px rgba(238, 188, 81, 0.8);
             opacity: 0;
             transform: scale(0.5);
             transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -107,8 +120,9 @@
             opacity: 0;
             font-family: 'Montserrat', sans-serif;
             font-size: 1rem;
+            pointer-events: auto; /* Đảm bảo nút bấm được */
         }
-        .btn-start:hover { 
+        .btn-start:active { 
             background: var(--accent-color); 
             color: var(--bg-color);
         }
@@ -118,10 +132,10 @@
             perspective: 2500px; 
             display: none; 
             z-index: 10; 
-            /* Kích thước container cố định để làm chuẩn cho scale */
             width: 450px;
             height: 580px;
             position: relative;
+            transform: translateZ(0); /* Ép render GPU */
         }
 
         .book {
@@ -130,7 +144,6 @@
             height: 100%;
             transition: transform 0.5s;
             transform-style: preserve-3d;
-            /* Căn giữa cuốn sách trong container */
             display: flex;
             justify-content: center; 
         }
@@ -143,24 +156,26 @@
             transform-style: preserve-3d;
             transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
             cursor: pointer;
-            user-select: none;
+            will-change: transform, z-index; /* Tối ưu hiệu năng lật trang */
         }
 
         .front, .back {
             position: absolute;
             width: 100%; height: 100%;
             top: 0; left: 0;
+            -webkit-backface-visibility: hidden; /* Quan trọng cho Safari */
             backface-visibility: hidden;
-            padding: 20px 25px; /* Giảm padding một chút */
+            padding: 20px 25px;
             background: var(--paper-color);
             border: 1px solid #dcd3c7;
             display: flex;
             flex-direction: column;
             box-shadow: inset 3px 0 10px rgba(0,0,0,0.1);
+            transform: translateZ(0); /* Fix lỗi nhấp nháy trên Android */
         }
 
         .back { 
-            transform: rotateY(180deg); 
+            transform: rotateY(180deg) translateZ(0.1px); /* Đẩy nhẹ Z để không bị đè vân */
             background: #ede6d8; 
             box-shadow: inset -3px 0 10px rgba(0,0,0,0.1);
         }
@@ -218,7 +233,7 @@
             font-size: 0.8rem; display: flex; align-items: center; gap: 10px;
             border: 1px solid rgba(238, 188, 81, 0.3);
             backdrop-filter: blur(5px);
-            max-width: 80%; /* Để không bị tràn trên mobile */
+            max-width: 80%; 
         }
         .song-info {
             max-width: 100px; overflow: hidden; white-space: nowrap;
@@ -256,6 +271,8 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            /* Tối ưu render ảnh con */
+            transform: translateZ(0) rotate(var(--r));
         }
         .polaroid img, .polaroid video { 
             width: 100%; 
@@ -263,9 +280,8 @@
             object-fit: cover; 
             background: #eee; 
             border: 1px solid #ddd; 
-            pointer-events: none; /* Để tránh xung đột với click trang */
+            pointer-events: none; 
         }
-        /* Cho phép click vào ảnh để zoom */
         .polaroid img.zoomable, .polaroid video.zoomable-video { pointer-events: auto; }
 
         .polaroid small { 
@@ -298,7 +314,6 @@
             text-align: center; 
         }
 
-        /* GHI CHÚ TRANG THÁNG */
         .page-note {
             margin-top: 10px;
             font-size: 0.9rem;
@@ -679,17 +694,23 @@
 
         // --- PAGE FLIP LOGIC ---
         function flipPage(pageElement, forceState = null) {
-            const originalZ = parseInt(pageElement.style.zIndex);
+            const pageNum = parseInt(pageElement.dataset.page || 0);
             
             // Logic: if flipped, unflip. If not, flip.
             let shouldFlip = forceState !== null ? forceState : !pageElement.classList.contains('flipped');
 
             if (shouldFlip) {
                 pageElement.classList.add('flipped');
-                pageElement.style.zIndex = 100 + parseInt(pageElement.dataset.page || 0);
+                // Nâng z-index lên cao ngay lập tức để đè lên các trang khác khi lật
+                pageElement.style.zIndex = 100 + pageNum;
             } else {
                 pageElement.classList.remove('flipped');
-                setTimeout(() => { pageElement.style.zIndex = 50 - parseInt(pageElement.dataset.page || 0); }, 400); 
+                // Trì hoãn việc giảm z-index để hiệu ứng lật ngược hoàn tất mà không bị cắt hình
+                setTimeout(() => { 
+                    if (!pageElement.classList.contains('flipped')) {
+                        pageElement.style.zIndex = 50 - pageNum; 
+                    }
+                }, 400); 
             }
         }
 
@@ -698,6 +719,7 @@
         let startX = 0, startY = 0;
         let transX = 0, transY = 0;
         let isDragging = false;
+        let isMoved = false; // Flag kiểm tra xem có di chuyển không (để phân biệt click và drag)
         const viewport = document.getElementById('viewport');
         const bookContainer = document.getElementById('book-container');
 
@@ -734,6 +756,9 @@
         let initialScale = 1;
 
         viewport.addEventListener('touchstart', (e) => {
+            // Nếu chạm vào video controls hoặc audio, không can thiệp
+            if (e.target.tagName === 'AUDIO' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
             if (e.touches.length === 2) {
                 // Pinch start
                 isDragging = false;
@@ -745,15 +770,16 @@
             } else if (e.touches.length === 1) {
                 // Drag start
                 isDragging = true;
+                isMoved = false;
                 startX = e.touches[0].pageX - transX;
                 startY = e.touches[0].pageY - transY;
             }
-        });
+        }, {passive: false});
 
         viewport.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2 && initialPinchDistance) {
                 // Pinch move
-                e.preventDefault(); // Prevent default zoom
+                e.preventDefault(); // Chặn zoom mặc định
                 const dist = Math.hypot(
                     e.touches[0].pageX - e.touches[1].pageX,
                     e.touches[0].pageY - e.touches[1].pageY
@@ -762,13 +788,20 @@
                 currentScale = initialScale * scaleFactor;
                 updateTransform();
             } else if (e.touches.length === 1 && isDragging) {
-                // Drag move (only if scaled > initial auto fit or user explicitly zoomed)
-                e.preventDefault(); // Prevent scroll
-                transX = e.touches[0].pageX - startX;
-                transY = e.touches[0].pageY - startY;
-                updateTransform();
+                // Drag move
+                // Tính khoảng cách di chuyển để xác định đây là Drag chứ không phải Click
+                const dx = Math.abs(e.touches[0].pageX - (startX + transX));
+                const dy = Math.abs(e.touches[0].pageY - (startY + transY));
+                
+                if (dx > 5 || dy > 5) {
+                    isMoved = true;
+                    e.preventDefault(); // Chặn scroll mặc định khi đang drag
+                    transX = e.touches[0].pageX - startX;
+                    transY = e.touches[0].pageY - startY;
+                    updateTransform();
+                }
             }
-        });
+        }, {passive: false});
 
         viewport.addEventListener('touchend', () => {
             isDragging = false;
@@ -779,16 +812,22 @@
         viewport.addEventListener('mousedown', e => {
             if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('.music-player')) return;
             isDragging = true;
+            isMoved = false;
             startX = e.clientX - transX;
             startY = e.clientY - transY;
             viewport.style.cursor = 'grabbing';
         });
         window.addEventListener('mousemove', e => {
             if (!isDragging) return;
-            e.preventDefault();
-            transX = e.clientX - startX;
-            transY = e.clientY - startY;
-            updateTransform();
+            const dx = Math.abs(e.clientX - (startX + transX));
+            const dy = Math.abs(e.clientY - (startY + transY));
+            if (dx > 5 || dy > 5) {
+                 isMoved = true;
+                 e.preventDefault();
+                 transX = e.clientX - startX;
+                 transY = e.clientY - startY;
+                 updateTransform();
+            }
         });
         window.addEventListener('mouseup', () => {
             isDragging = false;
@@ -800,30 +839,27 @@
         let touchStartX = 0;
         let touchEndX = 0;
         
-        // Use a wrapper or the book itself for swipe detection
         bookContainer.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
         }, {passive: true});
 
         bookContainer.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
+            // Chỉ lật trang nếu không phải là đang drag/zoom canvas
+            if (!isMoved) handleSwipe();
         }, {passive: true});
 
         function handleSwipe() {
-            const threshold = 50; // Minimum distance for swipe
+            const threshold = 50; 
             if (touchEndX < touchStartX - threshold) {
-                // Swipe Left -> Next Page
                 flipNextPage();
             }
             if (touchEndX > touchStartX + threshold) {
-                // Swipe Right -> Prev Page
                 flipPrevPage();
             }
         }
 
         function flipNextPage() {
-            // Find the first non-flipped page and flip it
             const pages = document.querySelectorAll('.page');
             for (let i = 0; i < pages.length; i++) {
                 if (!pages[i].classList.contains('flipped')) {
@@ -834,7 +870,6 @@
         }
 
         function flipPrevPage() {
-            // Find the last flipped page and unflip it
             const pages = Array.from(document.querySelectorAll('.page')).reverse();
             for (let i = 0; i < pages.length; i++) {
                 if (pages[i].classList.contains('flipped')) {
@@ -851,7 +886,11 @@
             const allPages = document.querySelectorAll('.page');
             allPages.forEach((page, index) => {
                 
+                // Sử dụng touchend và check biến isMoved để xử lý click trên mobile tốt hơn
                 page.addEventListener('click', function(e) {
+                    // Nếu đã di chuyển (drag) thì không tính là click
+                    if (isMoved) return;
+
                     // Ignore clicks on controls
                     if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || (e.target.tagName === 'VIDEO' && e.target.hasAttribute('controls')) || e.target.closest('.music-player')) return;
                     
