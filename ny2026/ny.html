@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
     <title>TRANG 2025 ALBUM</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Montserrat:wght@300;400&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
     <style>
@@ -14,19 +14,29 @@
             --secondary-color: #a98467; 
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-color);
             background: radial-gradient(ellipse at center, #1e293b 0%, #0f172a 100%);
             font-family: 'Dancing Script', cursive;
             color: var(--text-color);
-            overflow: hidden;
+            overflow: hidden; /* Ngăn cuộn trang mặc định để xử lý zoom/pan thủ công */
+            width: 100vw;
+            height: 100vh;
+            touch-action: none; /* Quan trọng cho việc kéo thả */
+        }
+
+        /* KHUNG CHỨA TOÀN BỘ ĐỂ ZOOM/PAN */
+        #viewport {
+            width: 100%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            touch-action: none; 
+            overflow: visible;
+            transform-origin: center center;
+            transition: transform 0.1s ease-out; /* Mượt mà khi pan */
         }
 
         /* CANVAS EFFECTS */
@@ -47,11 +57,12 @@
             text-align: center;
             display: none;
             pointer-events: none;
+            width: 100%;
         }
 
         #happy-new-year-text h1 {
             font-family: 'Dancing Script', cursive;
-            font-size: 5rem;
+            font-size: 4rem; /* Giảm size chút cho mobile */
             color: var(--accent-color);
             text-shadow: 0 0 20px rgba(238, 188, 81, 0.8), 0 0 40px rgba(238, 188, 81, 0.4);
             opacity: 0;
@@ -77,7 +88,7 @@
 
         .typing-text {
             font-family: 'Dancing Script', cursive;
-            font-size: 2rem;
+            font-size: 1.8rem;
             margin-bottom: 2rem;
             text-align: center;
             min-height: 1.5em;
@@ -95,61 +106,33 @@
             transition: all 0.3s;
             opacity: 0;
             font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
         }
         .btn-start:hover { 
             background: var(--accent-color); 
             color: var(--bg-color);
         }
 
-        /* ZOOM CONTROLS (PC ONLY) */
-        .zoom-controls {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 2500;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .zoom-btn {
-            width: 40px;
-            height: 40px;
-            background: rgba(15, 23, 42, 0.8);
-            color: var(--accent-color);
-            border: 1px solid var(--accent-color);
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
-            transition: 0.3s;
-        }
-        .zoom-btn:hover { background: var(--accent-color); color: var(--bg-color); }
-
-        @media (max-width: 768px) {
-            .zoom-controls { display: none; } 
-        }
-
         /* BOOK STRUCTURE */
         .book-container { 
-            perspective: 2000px; 
+            perspective: 2500px; 
             display: none; 
-            z-index: 10;
-            transition: transform 0.1s ease-out;
-            transform-origin: center center;
-            will-change: transform; /* Tối ưu hóa render khi zoom */
+            z-index: 10; 
+            /* Kích thước container cố định để làm chuẩn cho scale */
+            width: 450px;
+            height: 580px;
+            position: relative;
         }
 
         .book {
             position: relative;
-            width: 450px;
-            height: 580px;
+            width: 100%;
+            height: 100%;
             transition: transform 0.5s;
             transform-style: preserve-3d;
-            transform: translateX(225px); 
+            /* Căn giữa cuốn sách trong container */
+            display: flex;
+            justify-content: center; 
         }
 
         .page {
@@ -168,7 +151,7 @@
             width: 100%; height: 100%;
             top: 0; left: 0;
             backface-visibility: hidden;
-            padding: 30px;
+            padding: 20px 25px; /* Giảm padding một chút */
             background: var(--paper-color);
             border: 1px solid #dcd3c7;
             display: flex;
@@ -193,7 +176,7 @@
 
         .main-cover-img {
             width: 90%;
-            max-height: 300px;
+            max-height: 280px;
             object-fit: contain; 
             border: 3px solid var(--accent-color);
             margin-bottom: 25px;
@@ -204,28 +187,52 @@
 
         .page.flipped { transform: rotateY(-180deg); }
 
+        /* CONTROLS (ZOOM) */
+        .zoom-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 4000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .zoom-btn {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .zoom-btn:active { background: var(--accent-color); color: #000; }
+
         /* MUSIC PLAYER */
         .music-player {
             position: fixed; bottom: 20px; left: 20px; z-index: 500;
             background: rgba(15, 23, 42, 0.85); color: white;
-            padding: 10px 20px; border-radius: 30px; 
-            font-size: 0.8rem; display: flex; align-items: center; gap: 12px;
+            padding: 8px 15px; border-radius: 30px; 
+            font-size: 0.8rem; display: flex; align-items: center; gap: 10px;
             border: 1px solid rgba(238, 188, 81, 0.3);
             backdrop-filter: blur(5px);
+            max-width: 80%; /* Để không bị tràn trên mobile */
         }
         .song-info {
-            max-width: 150px; overflow: hidden; white-space: nowrap;
+            max-width: 100px; overflow: hidden; white-space: nowrap;
             text-overflow: ellipsis; color: var(--accent-color); font-weight: bold;
         }
-        .music-controls { display: flex; gap: 15px; align-items: center; }
-        .music-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1.1rem; }
+        .music-controls { display: flex; gap: 10px; align-items: center; }
+        .music-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1.1rem; padding: 5px;}
 
         /* GRID & POLAROID */
         .month-title {
             font-family: 'Dancing Script', cursive;
-            font-size: 2.2rem;
+            font-size: 2rem;
             color: var(--accent-color);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             border-bottom: 1px solid rgba(169, 132, 103, 0.3);
             text-align: center;
         }
@@ -234,34 +241,38 @@
             display: grid; 
             grid-template-columns: 1fr 1fr; 
             grid-template-rows: 1fr 1fr;
-            gap: 12px; 
+            gap: 10px; 
             flex-grow: 1;
+            align-content: start;
         }
 
         .polaroid {
             background: #faf9f6; 
-            padding: 5px 5px 15px 5px;
-            box-shadow: 3px 5px 10px rgba(0,0,0,0.1);
+            padding: 4px 4px 12px 4px;
+            box-shadow: 2px 3px 8px rgba(0,0,0,0.1);
             transform: rotate(var(--r));
             text-align: center;
-            height: 180px; 
+            height: 160px; 
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
         .polaroid img, .polaroid video { 
             width: 100%; 
-            height: 130px; 
+            height: 115px; 
             object-fit: cover; 
             background: #eee; 
             border: 1px solid #ddd; 
-            cursor: zoom-in;
+            pointer-events: none; /* Để tránh xung đột với click trang */
         }
+        /* Cho phép click vào ảnh để zoom */
+        .polaroid img.zoomable, .polaroid video.zoomable-video { pointer-events: auto; }
+
         .polaroid small { 
-            font-size: 0.65rem; 
+            font-size: 0.6rem; 
             font-family: 'Dancing Script', cursive; 
             color: #444; 
-            padding-top: 5px;
+            padding-top: 3px;
             display: block;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -270,34 +281,34 @@
         
         .full-img {
             width: 100%; 
-            height: 320px; 
+            height: 300px; 
             object-fit: contain; 
             background: #fdfdfd; 
             border: 5px solid white;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            cursor: zoom-in;
         }
 
         .desc { 
-            font-size: 1.1rem;
-            line-height: 1.5; 
+            font-size: 1rem;
+            line-height: 1.4; 
             font-style: italic; 
             color: var(--text-color); 
             opacity: 0.9; 
-            margin-top: 15px; 
+            margin-top: 10px; 
             text-align: center; 
         }
 
+        /* GHI CHÚ TRANG THÁNG */
         .page-note {
-            margin-top: 15px;
-            font-size: 0.95rem;
-            line-height: 1.4;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            line-height: 1.3;
             color: #5d534a;
             font-style: italic;
             text-align: center;
             min-height: 1.2em;
             border-top: 1px dashed rgba(169, 132, 103, 0.2);
-            padding-top: 10px;
+            padding-top: 8px;
         }
 
         /* ZOOM MODAL STYLES */
@@ -314,12 +325,13 @@
             animation: fadeIn 0.3s ease;
         }
         .modal-content {
-            max-width: 90%;
+            max-width: 95%;
             max-height: 90%;
-            border: 5px solid white;
+            border: 3px solid white;
             border-radius: 4px;
             background: white;
             animation: zoomIn 0.3s ease forwards;
+            object-fit: contain;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes zoomIn { from { transform: scale(0.8); } to { transform: scale(1); } }
@@ -329,8 +341,8 @@
             background: rgba(169, 132, 103, 0.1);
             border: 1px dashed var(--secondary-color);
             border-radius: 10px;
-            padding: 12px;
-            margin-top: 10px;
+            padding: 10px;
+            margin-top: 8px;
             text-align: center;
         }
         .video-container {
@@ -342,8 +354,8 @@
         }
         .btn-voice {
             background: var(--secondary-color);
-            color: white; border: none; padding: 8px 15px; border-radius: 20px;
-            cursor: pointer; font-family: inherit; margin: 5px auto;
+            color: white; border: none; padding: 6px 12px; border-radius: 20px;
+            cursor: pointer; font-family: inherit; margin: 5px auto; font-size: 0.9rem;
         }
 
         #note-2026 {
@@ -352,9 +364,26 @@
             color: white; padding: 10px; font-family: inherit;
         }
 
-        .sticker { position: absolute; bottom: 15px; right: 15px; font-size: 1.5rem; }
+        .sticker { position: absolute; bottom: 10px; right: 10px; font-size: 1.5rem; }
         .hidden { display: none !important; }
         .fade-in { opacity: 1 !important; }
+
+        /* Hướng dẫn vuốt */
+        #swipe-hint {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.5);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            pointer-events: none;
+            z-index: 60;
+            animation: pulse 2s infinite;
+            display: none;
+        }
+        @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 0.8; } 100% { opacity: 0.3; } }
+
     </style>
 </head>
 <body>
@@ -363,14 +392,14 @@
 
     <div id="happy-new-year-text"><h1>Happy New Year 2026</h1></div>
 
-    <div class="zoom-controls">
-        <button class="zoom-btn" id="zoom-in">+</button>
-        <button class="zoom-btn" id="zoom-out">-</button>
-        <button class="zoom-btn" id="zoom-reset">↺</button>
+    <div id="image-modal" class="image-modal">
+        <div id="modal-container" style="display: flex; justify-content: center; align-items: center; width:100%; height:100%;"></div>
     </div>
 
-    <div id="image-modal" class="image-modal">
-        <div id="modal-container" style="display: flex; justify-content: center; align-items: center;"></div>
+    <div class="zoom-controls">
+        <button class="zoom-btn" id="btn-zoom-in" title="Zoom In">+</button>
+        <button class="zoom-btn" id="btn-zoom-out" title="Zoom Out">-</button>
+        <button class="zoom-btn" id="btn-reset" title="Reset">↺</button>
     </div>
 
     <div class="music-player">
@@ -388,47 +417,45 @@
         <button class="btn-start" id="btn-start">ĐI ĐẾN ALBUM</button>
     </div>
 
-    <div class="book-container" id="book-container">
-        <div class="book" id="myBook">
-            
-            <div class="page" style="z-index: 60;">
-                <div class="front cover-front">
-                    <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img">
-                    <h1>MIUZXC/TRANG 2025 ALBUM</h1>
-                    <p>— Cùng xem lại một năm qua —</p>
-                    <small style="margin-top: 20px; opacity: 0.8;">Chạm để mở album</small>
-                </div>
-                <div class="back">
-                    <h2 class="month-title">MOMENT</h2>
-                    <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img zoomable">
-                    <p class="desc">"Những moments về mấy ng tích góp được cả năm qua"</p>
-                    <span class="sticker">✨</span>
-                </div>
-            </div>
+    <div id="swipe-hint">Vuốt ↔ để lật trang</div>
 
-            <div class="page" style="z-index: 59;">
-                <div class="front">
-                    <h2 class="month-title">Opening Words</h2>
-                    <p class="desc" style="font-size: 1.1rem; text-align: left;">Dear Trang 2025,<br>
-                        <br> Lúc đầu muốn tặng gì đó cho mấy ng vào cuối năm, xong hok bik tặng gì, rồi có ý tưởng là làm một cuốn album về mấy ng trong một năm qua.<br>
-                        <br> Chiếc album nhỏ này tui làm tổng hợp các hình ảnh từ social, pm về mấy ng một năm qua.<br>
-                        <br> Phần nhạc coi như tôi đánh cược ik, tuy đc cho tên nhạc rồi, nhưng tui chọn nhạc theo cảm tính, mong là sẽ tâm đầu ý hợp với gu nhạc của mấy ng. Tui có add thêm 1 bài khác vô, cho là bài này sẽ nói ra một chút tấm lòng của tui dành cho mấy ng.<br>
-                        <br> Đây là lần đầu tiên tui làm cái này, nếu có sai sót gì hãy bỏ qua cho tui.</p>
-                    <span class="sticker">✍️</span>
+    <div id="viewport">
+        <div class="book-container" id="book-container">
+            <div class="book" id="myBook">
+                
+                <div class="page" style="z-index: 60;" data-page="0">
+                    <div class="front cover-front">
+                        <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img">
+                        <h1>MIUZXC/TRANG 2025 ALBUM</h1>
+                        <p>— Cùng xem lại một năm qua —</p>
+                        <small style="margin-top: 20px; opacity: 0.8;">Chạm hoặc vuốt để mở</small>
+                    </div>
+                    <div class="back">
+                        <h2 class="month-title">MOMENT</h2>
+                        <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img zoomable">
+                        <p class="desc">"Những moments về mấy ng tích góp được cả năm qua"</p>
+                        <span class="sticker">✨</span>
+                    </div>
                 </div>
-                <div class="back" id="jan-first-half"></div>
-            </div>
 
+                <div class="page" style="z-index: 59;" data-page="1">
+                    <div class="front">
+                        <h2 class="month-title">Opening Words</h2>
+                        <p class="desc" style="font-size: 1.1rem; text-align: left;">Dear Trang 2025,<br>
+                            <br> Lúc đầu muốn tặng gì đó cho mấy ng vào cuối năm, xong hok bik tặng gì, rồi có ý tưởng là làm một cuốn album về mấy ng trong một năm qua.<br>
+                            <br> Chiếc album nhỏ này tui làm tổng hợp các hình ảnh từ social, pm về mấy ng một năm qua.<br>
+                            <br> Phần nhạc coi như tôi đánh cược ik, tuy đc cho tên nhạc rồi, nhưng tui chọn nhạc theo cảm tính, mong là sẽ tâm đầu ý hợp với gu nhạc của mấy ng. Tui có add thêm 1 bài khác vô, cho là bài này sẽ nói ra một chút tấm lòng của tui dành cho mấy ng.<br>
+                            <br> Đây là lần đầu tiên tui làm cái này, nếu có sai sót gì hãy bỏ qua cho tui.</p>
+                        <span class="sticker">✍️</span>
+                    </div>
+                    <div class="back" id="jan-first-half"></div>
+                </div>
+
+            </div>
         </div>
     </div>
 
     <script>
-        // CÁC BIẾN TOÀN CỤC CHO ZOOM
-        let currentScale = 0.4;
-        const minScale = 0.2;
-        const maxScale = 3;
-        let isPinching = false; // Flag chặn click khi đang zoom
-
         const albumData = {
             "January": [
                 { url: "https://i.postimg.cc/3NYZ4KPp/pic1_t1.png", caption: "hihi vừa win game 😊" },
@@ -583,6 +610,7 @@
             const p = document.createElement('div');
             p.className = 'page';
             p.style.zIndex = 50 - index;
+            p.dataset.page = index + 2; 
             
             const note2 = (monthNotes[m] && monthNotes[m][1]) ? monthNotes[m][1] : "";
             const frontHTML = `<div class="front">${createGridHTML(m, albumData[m].slice(4, 8), note2)}</div>`;
@@ -610,6 +638,7 @@
         const summaryPage = document.createElement('div');
         summaryPage.className = 'page';
         summaryPage.style.zIndex = 10;
+        summaryPage.dataset.page = months.length + 2;
         summaryPage.innerHTML = `
             <div class="front" style="overflow-y: auto;">
                 <h2 class="month-title">Share Little Moments</h2>
@@ -637,6 +666,7 @@
         const finalPage = document.createElement('div');
         finalPage.className = 'page';
         finalPage.style.zIndex = 5;
+        finalPage.dataset.page = months.length + 3;
         finalPage.innerHTML = `
             <div class="front cover-front" style="padding: 20px;">
                 <h2 style="font-family:'Dancing Script'; color:var(--accent-color); font-size: 2rem;">Gửi 2026</h2>
@@ -647,21 +677,186 @@
         `;
         book.appendChild(finalPage);
 
+        // --- PAGE FLIP LOGIC ---
+        function flipPage(pageElement, forceState = null) {
+            const originalZ = parseInt(pageElement.style.zIndex);
+            
+            // Logic: if flipped, unflip. If not, flip.
+            let shouldFlip = forceState !== null ? forceState : !pageElement.classList.contains('flipped');
+
+            if (shouldFlip) {
+                pageElement.classList.add('flipped');
+                pageElement.style.zIndex = 100 + parseInt(pageElement.dataset.page || 0);
+            } else {
+                pageElement.classList.remove('flipped');
+                setTimeout(() => { pageElement.style.zIndex = 50 - parseInt(pageElement.dataset.page || 0); }, 400); 
+            }
+        }
+
+        // --- ZOOM & PAN LOGIC ---
+        let currentScale = 1;
+        let startX = 0, startY = 0;
+        let transX = 0, transY = 0;
+        let isDragging = false;
+        const viewport = document.getElementById('viewport');
+        const bookContainer = document.getElementById('book-container');
+
+        // Auto-fit function
+        function autoFitBook() {
+            const screenW = window.innerWidth;
+            const bookW = 450; 
+            if (screenW < 500) {
+                currentScale = (screenW / bookW) * 0.95; // 95% width
+            } else {
+                currentScale = 1;
+            }
+            updateTransform();
+        }
+
+        function updateTransform() {
+            viewport.style.transform = `translate(${transX}px, ${transY}px) scale(${currentScale})`;
+        }
+
+        document.getElementById('btn-zoom-in').addEventListener('click', () => {
+            currentScale += 0.2; updateTransform();
+        });
+        document.getElementById('btn-zoom-out').addEventListener('click', () => {
+            if(currentScale > 0.4) currentScale -= 0.2; 
+            updateTransform();
+        });
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            currentScale = 1; transX = 0; transY = 0; autoFitBook();
+            updateTransform();
+        });
+
+        // Touch handling for Pan (Drag) & Pinch
+        let initialPinchDistance = null;
+        let initialScale = 1;
+
+        viewport.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                // Pinch start
+                isDragging = false;
+                initialPinchDistance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                initialScale = currentScale;
+            } else if (e.touches.length === 1) {
+                // Drag start
+                isDragging = true;
+                startX = e.touches[0].pageX - transX;
+                startY = e.touches[0].pageY - transY;
+            }
+        });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && initialPinchDistance) {
+                // Pinch move
+                e.preventDefault(); // Prevent default zoom
+                const dist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                const scaleFactor = dist / initialPinchDistance;
+                currentScale = initialScale * scaleFactor;
+                updateTransform();
+            } else if (e.touches.length === 1 && isDragging) {
+                // Drag move (only if scaled > initial auto fit or user explicitly zoomed)
+                e.preventDefault(); // Prevent scroll
+                transX = e.touches[0].pageX - startX;
+                transY = e.touches[0].pageY - startY;
+                updateTransform();
+            }
+        });
+
+        viewport.addEventListener('touchend', () => {
+            isDragging = false;
+            initialPinchDistance = null;
+        });
+
+        // Mouse Drag (for desktop testing)
+        viewport.addEventListener('mousedown', e => {
+            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('.music-player')) return;
+            isDragging = true;
+            startX = e.clientX - transX;
+            startY = e.clientY - transY;
+            viewport.style.cursor = 'grabbing';
+        });
+        window.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            e.preventDefault();
+            transX = e.clientX - startX;
+            transY = e.clientY - startY;
+            updateTransform();
+        });
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            viewport.style.cursor = 'default';
+        });
+
+
+        // --- SWIPE TO FLIP LOGIC ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        // Use a wrapper or the book itself for swipe detection
+        bookContainer.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        bookContainer.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+
+        function handleSwipe() {
+            const threshold = 50; // Minimum distance for swipe
+            if (touchEndX < touchStartX - threshold) {
+                // Swipe Left -> Next Page
+                flipNextPage();
+            }
+            if (touchEndX > touchStartX + threshold) {
+                // Swipe Right -> Prev Page
+                flipPrevPage();
+            }
+        }
+
+        function flipNextPage() {
+            // Find the first non-flipped page and flip it
+            const pages = document.querySelectorAll('.page');
+            for (let i = 0; i < pages.length; i++) {
+                if (!pages[i].classList.contains('flipped')) {
+                    flipPage(pages[i], true);
+                    return;
+                }
+            }
+        }
+
+        function flipPrevPage() {
+            // Find the last flipped page and unflip it
+            const pages = Array.from(document.querySelectorAll('.page')).reverse();
+            for (let i = 0; i < pages.length; i++) {
+                if (pages[i].classList.contains('flipped')) {
+                    flipPage(pages[i], false);
+                    return;
+                }
+            }
+        }
+
         const modal = document.getElementById('image-modal');
         const modalContainer = document.getElementById('modal-container');
 
         function initActions() {
             const allPages = document.querySelectorAll('.page');
             allPages.forEach((page, index) => {
-                const originalZ = parseInt(page.style.zIndex);
-
+                
                 page.addEventListener('click', function(e) {
-                    // NẾU ĐANG ZOOM (PINCHING) THÌ KHÔNG CHO CLICK
-                    if (isPinching) return;
-
+                    // Ignore clicks on controls
                     if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || (e.target.tagName === 'VIDEO' && e.target.hasAttribute('controls')) || e.target.closest('.music-player')) return;
                     
-                    if (e.target.tagName === 'IMG' || (e.target.tagName === 'VIDEO' && !e.target.hasAttribute('controls'))) {
+                    // Zoom logic for images
+                    if (e.target.classList.contains('zoomable') || e.target.classList.contains('zoomable-video')) {
                         e.stopPropagation();
                         modal.style.display = "flex";
                         modalContainer.innerHTML = "";
@@ -675,71 +870,17 @@
                         return;
                     }
 
+                    // Click to flip (still active along with swipe)
                     if (this.classList.contains('flipped')) {
-                        this.classList.remove('flipped');
-                        setTimeout(() => { this.style.zIndex = originalZ; }, 400); 
+                        flipPage(this, false);
                     } else {
-                        this.classList.add('flipped');
-                        this.style.zIndex = 100 + index;
+                        flipPage(this, true);
                     }
                 });
             });
             modal.onclick = () => { modal.style.display = "none"; modalContainer.innerHTML = ""; };
         }
         setTimeout(initActions, 100);
-
-        /* --- ZOOM LOGIC (CẢI TIẾN) --- */
-        const bookContainer = document.getElementById('book-container');
-
-        function updateZoom() {
-            bookContainer.style.transform = `scale(${currentScale})`;
-        }
-
-        // PC: Buttons
-        document.getElementById('zoom-in').onclick = () => { if(currentScale < maxScale) { currentScale += 0.2; updateZoom(); } };
-        document.getElementById('zoom-out').onclick = () => { if(currentScale > minScale) { currentScale -= 0.2; updateZoom(); } };
-        document.getElementById('zoom-reset').onclick = () => { currentScale = 1; updateZoom(); };
-
-        // MOBILE: Pinch-to-zoom (Mượt hơn)
-        let initialDistance = null;
-        let startScale = currentScale;
-
-        window.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                isPinching = true; // Bật flag chặn click
-                initialDistance = Math.hypot(
-                    e.touches[0].pageX - e.touches[1].pageX,
-                    e.touches[0].pageY - e.touches[1].pageY
-                );
-                startScale = currentScale;
-            }
-        }, { passive: false });
-
-        window.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2 && initialDistance !== null) {
-                e.preventDefault();
-                const currentDistance = Math.hypot(
-                    e.touches[0].pageX - e.touches[1].pageX,
-                    e.touches[0].pageY - e.touches[1].pageY
-                );
-                
-                const delta = currentDistance / initialDistance;
-                let newScale = startScale * delta;
-                
-                if (newScale >= minScale && newScale <= maxScale) {
-                    currentScale = newScale;
-                    updateZoom();
-                }
-            }
-        }, { passive: false });
-
-        window.addEventListener('touchend', (e) => {
-            if (e.touches.length < 2) {
-                initialDistance = null;
-                // Đợi 200ms sau khi thả tay mới cho phép click lại để tránh "ghost click"
-                setTimeout(() => { isPinching = false; }, 200);
-            }
-        });
 
         /* --- NHẠC NỀN --- */
         const playlist = [
@@ -796,14 +937,19 @@
                 charIdx++; setTimeout(typeWriter, 60);
             } else { document.getElementById("btn-start").classList.add("fade-in"); }
         }
-        window.onload = typeWriter;
+        window.onload = function() {
+            typeWriter();
+            resizeSnow();
+        };
 
         document.getElementById('btn-start').addEventListener('click', () => {
             document.getElementById('welcome-screen').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('welcome-screen').classList.add('hidden');
                 document.getElementById('book-container').style.display = 'block';
-                updateZoom();
+                document.getElementById('swipe-hint').style.display = 'block';
+                setTimeout(() => { document.getElementById('swipe-hint').style.display = 'none'; }, 5000);
+                autoFitBook(); // Auto zoom on start
                 playSong();
             }, 1000);
         });
@@ -813,7 +959,11 @@
         const sctx = snowCanvas.getContext('2d');
         let snowParticles = [];
         function resizeSnow() { snowCanvas.width = window.innerWidth; snowCanvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeSnow); resizeSnow();
+        window.addEventListener('resize', () => {
+            resizeSnow();
+            autoFitBook();
+        });
+        
         class Snowflake {
             constructor() { this.reset(); }
             reset() { this.x = Math.random() * snowCanvas.width; this.y = Math.random() * -snowCanvas.height; this.radius = Math.random() * 3 + 1; this.speed = Math.random() * 1 + 0.5; this.opacity = Math.random() * 0.5 + 0.3; }
@@ -831,6 +981,8 @@
             const nyText = document.getElementById('happy-new-year-text');
             document.getElementById('myBook').style.transform = "scale(0) rotateY(-180deg)";
             document.getElementById('myBook').style.opacity = "0";
+            // Hide Zoom Controls
+            document.querySelector('.zoom-controls').style.display = 'none';
             setTimeout(() => {
                 document.getElementById('book-container').style.display = "none";
                 fCanvas.style.display = "block"; nyText.style.display = "block";
