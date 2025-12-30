@@ -14,7 +14,7 @@
             --secondary-color: #a98467; 
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             background-color: var(--bg-color);
@@ -26,17 +26,17 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            touch-action: none; 
+            width: 100vw;
+            touch-action: none; /* Quan trọng để chặn scroll mặc định của trình duyệt */
         }
 
-        /* CANVAS EFFECTS - Tối ưu layer */
+        /* CANVAS EFFECTS */
         #snow-canvas, #fireworks-canvas {
             position: fixed;
             top: 0; left: 0;
             pointer-events: none;
             z-index: 100;
             opacity: 0.8;
-            will-change: transform;
         }
         #fireworks-canvas { z-index: 2000; display: none; opacity: 1; }
 
@@ -52,12 +52,12 @@
 
         #happy-new-year-text h1 {
             font-family: 'Dancing Script', cursive;
-            font-size: 4rem; /* Giảm nhẹ cho mobile */
+            font-size: 3.5rem;
             color: var(--accent-color);
-            text-shadow: 0 0 20px rgba(238, 188, 81, 0.8);
+            text-shadow: 0 0 20px rgba(238, 188, 81, 0.8), 0 0 40px rgba(238, 188, 81, 0.4);
             opacity: 0;
             transform: scale(0.5);
-            transition: all 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         #happy-new-year-text.show h1 { opacity: 1; transform: scale(1); }
@@ -73,12 +73,12 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.8s ease;
+            transition: opacity 1s ease;
         }
 
         .typing-text {
             font-family: 'Dancing Script', cursive;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             margin-bottom: 2rem;
             text-align: center;
             min-height: 1.5em;
@@ -97,12 +97,17 @@
             opacity: 0;
             font-family: 'Montserrat', sans-serif;
         }
-        .btn-start:hover { background: var(--accent-color); color: var(--bg-color); }
+        .btn-start.fade-in { opacity: 1; }
+        .btn-start:hover { 
+            background: var(--accent-color); 
+            color: var(--bg-color);
+        }
 
-        /* ZOOM CONTROLS (PC ONLY) */
+        /* ZOOM CONTROLS (VISIBLE ON ALL) */
         .zoom-controls {
             position: fixed;
-            top: 20px; right: 20px;
+            top: 20px;
+            right: 20px;
             z-index: 2500;
             display: flex;
             flex-direction: column;
@@ -110,40 +115,38 @@
         }
 
         .zoom-btn {
-            width: 40px; height: 40px;
+            width: 45px;
+            height: 45px;
             background: rgba(15, 23, 42, 0.8);
             color: var(--accent-color);
             border: 1px solid var(--accent-color);
             border-radius: 50%;
             cursor: pointer;
-            display: flex; justify-content: center; align-items: center;
+            font-size: 1.4rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             backdrop-filter: blur(5px);
-            transition: 0.3s;
         }
 
-        @media (max-width: 768px) {
-            .zoom-controls { display: none; } 
-            #happy-new-year-text h1 { font-size: 3rem; }
-        }
-
-        /* BOOK STRUCTURE - Tối ưu mượt mà */
+        /* BOOK STRUCTURE */
         .book-container { 
             perspective: 2000px; 
             display: none; 
             z-index: 10;
             will-change: transform;
-            transform-origin: center center;
-            transition: transform 0.1s ease-out;
+            cursor: grab;
         }
+        .book-container:active { cursor: grabbing; }
 
         .book {
             position: relative;
             width: 450px;
             height: 580px;
+            transition: transform 0.5s;
             transform-style: preserve-3d;
-            transform: translateX(225px); 
-            transition: transform 0.6s cubic-bezier(0.2, 0, 0.2, 1);
-            will-change: transform;
+            /* Căn giữa trục lật */
+            transform: translateX(0px); 
         }
 
         .page {
@@ -153,9 +156,7 @@
             transform-origin: left;
             transform-style: preserve-3d;
             transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
-            cursor: pointer;
             user-select: none;
-            will-change: transform;
         }
 
         .front, .back {
@@ -163,13 +164,13 @@
             width: 100%; height: 100%;
             top: 0; left: 0;
             backface-visibility: hidden;
-            -webkit-backface-visibility: hidden; /* Cần thiết cho Safari mobile */
             padding: 30px;
             background: var(--paper-color);
             border: 1px solid #dcd3c7;
             display: flex;
             flex-direction: column;
             box-shadow: inset 3px 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
 
         .back { 
@@ -189,28 +190,28 @@
 
         .main-cover-img {
             width: 90%;
-            max-height: 280px;
+            max-height: 250px;
             object-fit: contain; 
             border: 3px solid var(--accent-color);
             margin-bottom: 25px;
             border-radius: 4px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
             background: #2c241e;
         }
 
-        .page.flipped { transform: rotateY(-180deg) translate3d(0,0,0); }
+        .page.flipped { transform: rotateY(-180deg); }
 
         /* MUSIC PLAYER */
         .music-player {
-            position: fixed; bottom: 20px; left: 20px; z-index: 500;
+            position: fixed; bottom: 20px; left: 20px; z-index: 2500;
             background: rgba(15, 23, 42, 0.85); color: white;
             padding: 8px 15px; border-radius: 30px; 
-            font-size: 0.8rem; display: flex; align-items: center; gap: 10px;
+            font-size: 0.75rem; display: flex; align-items: center; gap: 10px;
             border: 1px solid rgba(238, 188, 81, 0.3);
             backdrop-filter: blur(5px);
+            max-width: 80vw;
         }
         .song-info {
-            max-width: 120px; overflow: hidden; white-space: nowrap;
+            max-width: 100px; overflow: hidden; white-space: nowrap;
             text-overflow: ellipsis; color: var(--accent-color); font-weight: bold;
         }
         .music-controls { display: flex; gap: 10px; align-items: center; }
@@ -219,7 +220,7 @@
         /* GRID & POLAROID */
         .month-title {
             font-family: 'Dancing Script', cursive;
-            font-size: 2rem;
+            font-size: 1.8rem;
             color: var(--accent-color);
             margin-bottom: 10px;
             border-bottom: 1px solid rgba(169, 132, 103, 0.3);
@@ -237,69 +238,95 @@
         .polaroid {
             background: #faf9f6; 
             padding: 5px 5px 12px 5px;
-            box-shadow: 3px 5px 8px rgba(0,0,0,0.1);
-            transform: rotate(var(--r)) translate3d(0,0,0);
+            box-shadow: 3px 5px 10px rgba(0,0,0,0.1);
+            transform: rotate(var(--r));
             text-align: center;
-            height: 170px; 
-            display: flex; flex-direction: column; justify-content: space-between;
+            height: 160px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         .polaroid img, .polaroid video { 
-            width: 100%; height: 125px; 
-            object-fit: cover; background: #eee; 
-            border: 1px solid #ddd; cursor: zoom-in;
+            width: 100%; 
+            height: 110px; 
+            object-fit: cover; 
+            background: #eee; 
+            border: 1px solid #ddd; 
         }
         .polaroid small { 
-            font-size: 0.6rem; font-family: 'Dancing Script', cursive; 
-            color: #444; padding-top: 3px; display: block;
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            font-size: 0.6rem; 
+            font-family: 'Dancing Script', cursive; 
+            color: #444; 
+            padding-top: 4px;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         .full-img {
-            width: 100%; height: 300px; 
-            object-fit: contain; background: #fdfdfd; 
-            border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            cursor: zoom-in;
+            width: 100%; 
+            height: 280px; 
+            object-fit: contain; 
+            background: #fdfdfd; 
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         .desc { 
-            font-size: 1rem; line-height: 1.4; 
-            font-style: italic; color: var(--text-color); 
-            opacity: 0.9; margin-top: 10px; text-align: center; 
+            font-size: 0.95rem;
+            line-height: 1.4; 
+            font-style: italic; 
+            color: var(--text-color); 
+            opacity: 0.9; 
+            margin-top: 10px; 
+            text-align: center; 
         }
 
         .page-note {
-            margin-top: 10px; font-size: 0.9rem;
-            line-height: 1.4; color: #5d534a;
-            font-style: italic; text-align: center;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            line-height: 1.3;
+            color: #5d534a;
+            font-style: italic;
+            text-align: center;
             border-top: 1px dashed rgba(169, 132, 103, 0.2);
             padding-top: 8px;
         }
 
         /* MODAL */
         .image-modal {
-            display: none; position: fixed;
-            z-index: 5000; top: 0; left: 0;
+            display: none;
+            position: fixed;
+            z-index: 5000;
+            top: 0; left: 0;
             width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.92);
-            justify-content: center; align-items: center;
-            cursor: zoom-out;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
         }
         .modal-content {
-            max-width: 95%; max-height: 90%;
-            border: 4px solid white; border-radius: 4px;
-            animation: zoomIn 0.3s ease;
+            max-width: 95%;
+            max-height: 80%;
+            border: 3px solid white;
+            border-radius: 4px;
+            background: white;
         }
-        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .voice-card, .video-card {
             background: rgba(169, 132, 103, 0.1);
             border: 1px dashed var(--secondary-color);
-            border-radius: 10px; padding: 10px;
-            margin-top: 8px; text-align: center;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 8px;
+            text-align: center;
         }
         .video-container {
-            width: 100%; border-radius: 8px;
-            overflow: hidden; border: 2px solid white; margin-top: 5px;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid white;
+            margin-top: 5px;
         }
         .btn-voice {
             background: var(--secondary-color);
@@ -308,14 +335,13 @@
         }
 
         #note-2026 {
-            width: 100%; height: 70px; margin-top: 10px; 
+            width: 100%; height: 80px; margin-top: 10px; 
             background: rgba(255,255,255,0.1); border: 1px solid var(--accent-color); 
             color: white; padding: 10px; font-family: inherit;
         }
 
-        .sticker { position: absolute; bottom: 15px; right: 15px; font-size: 1.5rem; }
+        .sticker { position: absolute; bottom: 10px; right: 15px; font-size: 1.2rem; }
         .hidden { display: none !important; }
-        .fade-in { opacity: 1 !important; transition: opacity 1s; }
     </style>
 </head>
 <body>
@@ -346,23 +372,22 @@
 
     <div id="welcome-screen">
         <div class="typing-text" id="typewriter"></div>
-        <button class="btn-start" id="btn-start">ĐI ĐẾN ALBUM</button>
+        <button class="btn-start" id="btn-start">XEM ALBUM</button>
     </div>
 
     <div class="book-container" id="book-container">
         <div class="book" id="myBook">
-            
             <div class="page" style="z-index: 60;">
                 <div class="front cover-front">
                     <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img">
-                    <h1 style="font-size: 1.8rem;">MIUZXC/TRANG 2025 ALBUM</h1>
+                    <h1 style="font-size: 1.8rem;">TRANG 2025 ALBUM</h1>
                     <p>— Cùng xem lại một năm qua —</p>
-                    <small style="margin-top: 20px; opacity: 0.8;">Chạm để mở album</small>
+                    <small style="margin-top: 20px; opacity: 0.8;">Chạm để lật trang</small>
                 </div>
                 <div class="back">
                     <h2 class="month-title">MOMENT</h2>
-                    <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img zoomable">
-                    <p class="desc">"Những moments về mấy ng tích góp được cả năm qua"</p>
+                    <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img">
+                    <p class="desc">"Những moments tích góp được cả năm qua"</p>
                     <span class="sticker">✨</span>
                 </div>
             </div>
@@ -370,255 +395,145 @@
             <div class="page" style="z-index: 59;">
                 <div class="front">
                     <h2 class="month-title">Opening Words</h2>
-                    <p class="desc" style="font-size: 1rem; text-align: left;">Dear Trang 2025,<br>
-                        <br> Lúc đầu muốn tặng gì đó cho mấy ng vào cuối năm, xong hok bik tặng gì, rồi có ý tưởng là làm một cuốn album về mấy ng trong một năm qua.<br>
+                    <p class="desc" style="font-size: 0.9rem; text-align: left; font-style: normal;">Dear Trang 2025,<br>
+                        <br> Lúc đầu muốn tặng gì đó cho mấy ng vào cuối năm, xong hok bik tặng gì, rồi có ý tưởng là làm một cuốn album.<br>
                         <br> Chiếc album nhỏ này tui làm tổng hợp các hình ảnh từ social, pm về mấy ng một năm qua.<br>
-                        <br> Phần nhạc tui chọn theo cảm tính, mong là sẽ hợp với gu nhạc của mấy ng. Tui có add thêm 1 bài khác vô, coi như nói ra một chút tấm lòng của tui.<br>
-                        <br> Đây là lần đầu tiên tui làm cái này, nếu có sai sót gì hãy bỏ qua cho tui.</p>
+                        <br> Tui có add thêm nhạc, mong là sẽ hợp gu mấy ng. Có 1 bài tui chọn để nói ra một chút tấm lòng của tui.<br>
+                        <br> Nếu có sai sót gì hãy bỏ qua cho tui nha.</p>
                     <span class="sticker">✍️</span>
                 </div>
                 <div class="back" id="jan-first-half"></div>
             </div>
-
         </div>
     </div>
 
     <script>
-        // CÁC BIẾN TOÀN CỤC CHO ZOOM - Tối ưu tỷ lệ mặc định cho mobile
-        let isMobile = window.innerWidth <= 768;
-        let currentScale = isMobile ? 0.65 : 0.85;
-        const minScale = 0.3;
-        const maxScale = 2.5;
-        let isPinching = false;
-
+        // --- DỮ LIỆU ALBUM (GIỮ NGUYÊN) ---
         const albumData = {
-            "January": [
-                { url: "https://i.postimg.cc/3NYZ4KPp/pic1_t1.png", caption: "hihi vừa win game 😊" },
-                { url: "https://i.postimg.cc/WzT7F2Qq/pic2_t1.png", caption: "hentai 😒" }
-            ],
+            "January": [{ url: "https://i.postimg.cc/3NYZ4KPp/pic1_t1.png", caption: "hihi vừa win game 😊" },{ url: "https://i.postimg.cc/WzT7F2Qq/pic2_t1.png", caption: "hentai 😒" }],
             "February": [{ url: "https://i.postimg.cc/pry8wp8m/pic1_t2.png", caption: "🥴" }],
-            "March": [
-                { url: "https://i.postimg.cc/qvYkwgBQ/pic1_t3.png", caption: "ヾ(＠⌒ー⌒＠)ノ" },
-                { url: "https://i.postimg.cc/CxtF7dM6/pic2_t3.png", caption: "(●ˇ∀ˇ●)" }
-            ],
+            "March": [{ url: "https://i.postimg.cc/qvYkwgBQ/pic1_t3.png", caption: "ヾ(＠⌒ー⌒＠)ノ" },{ url: "https://i.postimg.cc/CxtF7dM6/pic2_t3.png", caption: "(●ˇ∀ˇ●)" }],
             "April": [{ url: "https://i.postimg.cc/wjJ6Wgt7/pic1_t4.png", caption: "Cute 😍🩷" }],
-            "May": [
-                { url: "https://i.postimg.cc/SNbqJHTL/pic1_t5.png", caption: "Nay xinh chụp cho tấm 🥰" },
-                { url: "https://i.postimg.cc/52xVmLMk/pic2_t5.png", caption: "❤️" },
-                { url: "https://i.postimg.cc/x1jwmQKR/pic3_t5.png", caption: "🩵" },
-                { url: "https://i.postimg.cc/Z5gwqzjS/pic4_t5.png", caption: "🖤" },
-            ],
-            "June": [
-                { url: "https://i.postimg.cc/nrSHW1fQ/pic1_t6.png", caption: "(*^▽^*)" },
-                { url: "https://i.postimg.cc/h42PhKQK/pic2_t6.png", caption: "`(*>﹏<*)′" },
-                { url: "https://i.postimg.cc/zv2JQkYV/pic3_t6.png", caption: "(✿◠‿◠)" },
-                { url: "https://i.postimg.cc/fW8TkMSR/pic4_t6.png", caption: "(≧∇≦)" },
-                { url: "https://i.postimg.cc/Cx0HcCJx/pic5_t6.png", caption: "o((>ω< ))o" },
-                { url: "https://i.postimg.cc/y8KXLhnd/pic6_t6.png", caption: "( •̀ ω •́ )" },
-                { url: "https://i.postimg.cc/y8KXLhnJ/pic7_t6.png", caption: "o((>ω< ))o" },
-                { url: "https://i.postimg.cc/4xGbWvw7/pic8_t6.png", caption: "(❁´◡`❁)" }
-            ],
-            "July": [
-                { url: "https://i.postimg.cc/RZmQg1Gm/pic1_t7.png", caption: "( •̀ ω •́ )✧" },
-                { url: "https://i.postimg.cc/y8KXLhnB/pic2_t7.png", caption: "q(≧▽≦q)" },
-                { url: "https://i.postimg.cc/vZyL07Xb/pic3_t7.png", caption: "(^・ω・^ )" },
-                { url: "https://i.postimg.cc/RZmQg1GB/pic4_t7.png", caption: "(o゜▽゜)o☆" },
-                { url: "https://i.postimg.cc/htnb28MG/pic5_t7.png", caption: "✪ ω ✪" },
-                { url: "https://i.postimg.cc/htnb28Mv/pic6_t7.png", caption: "(✿◕‿◕✿)" },
-                { url: "https://i.postimg.cc/c4FwcqKF/pic7_t7.png", caption: "(. ❛ ᴗ ❛.)" },
-                { url: "https://i.postimg.cc/zXxKkmLt/pic8_t7.png", caption: "(。・ω・。)" }
-            ],
-            "August": [
-                { url: "https://i.postimg.cc/Hs6XtGJ7/pic1_t8.png", caption: "Pretty" },
-                { url: "https://i.postimg.cc/Nfdmxhyy/pic2_t8.png", caption: "Shining" },
-                { url: "https://i.postimg.cc/Wb5g7RDF/pic3_t8.png", caption: "Lovely" },
-                { url: "https://i.postimg.cc/fT8mv43X/pic4_t8.png", caption: "Sweet" },
-                { url: "https://i.postimg.cc/sDT7JFBP/pic5_t8.png", caption: "Hey" },
-                { url: "https://i.postimg.cc/m2mCSxcN/pic6_t8.png", caption: "Tiny" },
-                { url: "https://i.postimg.cc/02VDCg6t/pic7_t8.png", caption: "💌" },
-                { url: "https://i.postimg.cc/FHjfn2zV/pic8_t8.png", caption: "Charming" }
-            ],
-            "September": [
-                { url: "https://i.postimg.cc/2SpbGzkv/pic1_t9.png", caption: "🤗" },
-                { url: "https://i.postimg.cc/rw60j8V1/pic2_t9.png", caption: "😊" },
-                { url: "https://i.postimg.cc/Njh9Dgs8/pic3_t9.png", caption: "☺️" },
-                { url: "https://i.postimg.cc/VkyrgYfB/pic4_t9.png", caption: "🤩" },
-                { url: "https://i.postimg.cc/RZr6dMSX/pic5_t9.png", caption: "😗" },
-                { url: "https://i.postimg.cc/Njh9Dgsz/pic6_t9.png", caption: "😙" },
-                { url: "https://i.postimg.cc/QdpBnRCq/pic7_t9.png", caption: "😚" },
-                { url: "https://i.postimg.cc/YC14yJ03/pic8_t9.png", caption: "😘" }
-            ],
-            "October": [
-                { url: "https://i.postimg.cc/jSLTDN0c/pic1_t10.png", caption: "Kawaii 🥰" },
-                { url: "https://i.postimg.cc/bwsPZbcT/pic2_t10.png", caption: "Adorable ❤️" },
-                { url: "https://i.postimg.cc/BnX3jD9B/pic3_t10.png", caption: "Kiss kiss 💋" },
-                { url: "https://i.postimg.cc/9XZBpLZ2/pic4_t10.png", caption: "Bunny 🐰" },
-                { url: "https://i.postimg.cc/zDKkjxKY/pic5_t10.png", caption: "Little crazy 🤪" },
-                { url: "https://i.postimg.cc/VsnFRKn8/pic6_t10.png", caption: "Precious" },
-                { url: "https://i.postimg.cc/GmHR4YwV/pic7_t10.png", caption: "1 chút thành tựu nhỏ của năm 🏆" },
-                { url: "./video/video1_t10.mp4", caption: "Chill chill get home" },
-            ],
-            "November": [
-                { url: "./video/videot11.mp4", caption: "Cool" },
-                { url: "https://i.postimg.cc/ZqvNqqxV/pic1_t11.png", caption: "(❤️ ω ❤️)" },
-                { url: "https://i.postimg.cc/mr19rryX/pic2_t11.png", caption: "(★ ω ★)" },
-                { url: "https://i.postimg.cc/rpR4ppNZ/pic3_t11.png", caption: "(^◕.◕^)" },
-                { url: "https://i.postimg.cc/zv2DWCJ2/pic4_t11.png", caption: "Meow 😸" },
-                { url: "https://i.postimg.cc/5tQzttSs/pic5_t11.png", caption: "(*✧×✧*)" },
-                { url: "./video/video1_t11.mp4", caption: "UwU" }
-            ],
-            "December": [
-                { url: "https://i.postimg.cc/5yybxXwY/pic1_t12.png", caption: "Beautiful 💕" },
-                { url: "https://i.postimg.cc/zvv8Jyn3/pic2_t12.png", caption: "Angel 🪽" },
-                { url: "https://i.postimg.cc/T11fRKrK/pic3_t12.png", caption: "Gorgeous ✨" },
-                { url: "https://i.postimg.cc/NFFBgK15/pic4_t12.png", caption: "Stunning ❤️‍🔥" },
-                { url: "./video/video1_t12.mp4", caption: "Still cute 💖" },
-                { url: "./video/video2_t12.mp4", caption: "Hi ✌️" }
-            ]
+            "May": [{ url: "https://i.postimg.cc/SNbqJHTL/pic1_t5.png", caption: "Nay xinh chụp cho tấm 🥰" },{ url: "https://i.postimg.cc/52xVmLMk/pic2_t5.png", caption: "❤️" },{ url: "https://i.postimg.cc/x1jwmQKR/pic3_t5.png", caption: "🩵" },{ url: "https://i.postimg.cc/Z5gwqzjS/pic4_t5.png", caption: "🖤" }],
+            "June": [{ url: "https://i.postimg.cc/nrSHW1fQ/pic1_t6.png", caption: "(*^▽^*)" },{ url: "https://i.postimg.cc/h42PhKQK/pic2_t6.png", caption: "`(*>﹏<*)′" },{ url: "https://i.postimg.cc/zv2JQkYV/pic3_t6.png", caption: "(✿◠‿◠)" },{ url: "https://i.postimg.cc/fW8TkMSR/pic4_t6.png", caption: "(≧∇≦)" },{ url: "https://i.postimg.cc/Cx0HcCJx/pic5_t6.png", caption: "o((>ω< ))o" },{ url: "https://i.postimg.cc/y8KXLhnd/pic6_t6.png", caption: "( •̀ ω •́ )" },{ url: "https://i.postimg.cc/y8KXLhnJ/pic7_t6.png", caption: "o((>ω< ))o" },{ url: "https://i.postimg.cc/4xGbWvw7/pic8_t6.png", caption: "(❁´◡`❁)" }],
+            "July": [{ url: "https://i.postimg.cc/RZmQg1Gm/pic1_t7.png", caption: "( •̀ ω •́ )✧" },{ url: "https://i.postimg.cc/y8KXLhnB/pic2_t7.png", caption: "q(≧▽≦q)" },{ url: "https://i.postimg.cc/vZyL07Xb/pic3_t7.png", caption: "(^・ω・^ )" },{ url: "https://i.postimg.cc/RZmQg1GB/pic4_t7.png", caption: "(o゜▽゜)o☆" },{ url: "https://i.postimg.cc/htnb28MG/pic5_t7.png", caption: "✪ ω ✪" },{ url: "https://i.postimg.cc/htnb28Mv/pic6_t7.png", caption: "(✿◕‿◕✿)" },{ url: "https://i.postimg.cc/c4FwcqKF/pic7_t7.png", caption: "(. ❛ ᴗ ❛.)" },{ url: "https://i.postimg.cc/zXxKkmLt/pic8_t7.png", caption: "(。・ω・。)" }],
+            "August": [{ url: "https://i.postimg.cc/Hs6XtGJ7/pic1_t8.png", caption: "Pretty" },{ url: "https://i.postimg.cc/Nfdmxhyy/pic2_t8.png", caption: "Shining" },{ url: "https://i.postimg.cc/Wb5g7RDF/pic3_t8.png", caption: "Lovely" },{ url: "https://i.postimg.cc/fT8mv43X/pic4_t8.png", caption: "Sweet" },{ url: "https://i.postimg.cc/sDT7JFBP/pic5_t8.png", caption: "Hey" },{ url: "https://i.postimg.cc/m2mCSxcN/pic6_t8.png", caption: "Tiny" },{ url: "https://i.postimg.cc/02VDCg6t/pic7_t8.png", caption: "💌" },{ url: "https://i.postimg.cc/FHjfn2zV/pic8_t8.png", caption: "Charming" }],
+            "September": [{ url: "https://i.postimg.cc/2SpbGzkv/pic1_t9.png", caption: "🤗" },{ url: "https://i.postimg.cc/rw60j8V1/pic2_t9.png", caption: "😊" },{ url: "https://i.postimg.cc/Njh9Dgs8/pic3_t9.png", caption: "☺️" },{ url: "https://i.postimg.cc/VkyrgYfB/pic4_t9.png", caption: "🤩" },{ url: "https://i.postimg.cc/RZr6dMSX/pic5_t9.png", caption: "😗" },{ url: "https://i.postimg.cc/Njh9Dgsz/pic6_t9.png", caption: "😙" },{ url: "https://i.postimg.cc/QdpBnRCq/pic7_t9.png", caption: "😚" },{ url: "https://i.postimg.cc/YC14yJ03/pic8_t9.png", caption: "😘" }],
+            "October": [{ url: "https://i.postimg.cc/jSLTDN0c/pic1_t10.png", caption: "Kawaii 🥰" },{ url: "https://i.postimg.cc/bwsPZbcT/pic2_t10.png", caption: "Adorable ❤️" },{ url: "https://i.postimg.cc/BnX3jD9B/pic3_t10.png", caption: "Kiss kiss 💋" },{ url: "https://i.postimg.cc/9XZBpLZ2/pic4_t10.png", caption: "Bunny 🐰" },{ url: "https://i.postimg.cc/zDKkjxKY/pic5_t10.png", caption: "Little crazy 🤪" },{ url: "https://i.postimg.cc/VsnFRKn8/pic6_t10.png", caption: "Precious" },{ url: "https://i.postimg.cc/GmHR4YwV/pic7_t10.png", caption: "Thành tựu nhỏ 🏆" },{ url: "./video/video1_t10.mp4", caption: "Chill chill" }],
+            "November": [{ url: "./video/videot11.mp4", caption: "Cool" },{ url: "https://i.postimg.cc/ZqvNqqxV/pic1_t11.png", caption: "(❤️ ω ❤️)" },{ url: "https://i.postimg.cc/mr19rryX/pic2_t11.png", caption: "(★ ω ★)" },{ url: "https://i.postimg.cc/rpR4ppNZ/pic3_t11.png", caption: "(^◕.◕^)" },{ url: "https://i.postimg.cc/zv2DWCJ2/pic4_t11.png", caption: "Meow 😸" },{ url: "https://i.postimg.cc/5tQzttSs/pic5_t11.png", caption: "(*✧×✧*)" },{ url: "./video/video1_t11.mp4", caption: "UwU" }],
+            "December": [{ url: "https://i.postimg.cc/5yybxXwY/pic1_t12.png", caption: "Beautiful 💕" },{ url: "https://i.postimg.cc/zvv8Jyn3/pic2_t12.png", caption: "Angel 🪽" },{ url: "https://i.postimg.cc/T11fRKrK/pic3_t12.png", caption: "Gorgeous ✨" },{ url: "https://i.postimg.cc/NFFBgK15/pic4_t12.png", caption: "Stunning ❤️‍🔥" },{ url: "./video/video1_t12.mp4", caption: "Still cute 💖" },{ url: "./video/video2_t12.mp4", caption: "Hi ✌️" }]
         };
 
         const monthNotes = {
-            "January": ["Những tháng đầu hình về mấy ng hok đc nhìu.", "Chạm vào ảnh để phóng to xem rõ hơn nha."],
-            "February": ["Tấm mặt mộc duy nhất, hôm đó chắc say quá xong gửi cho tui xem."],
-            "March": ["Album này tui chọn lọc mấy tấm nhìn dịu dịu, kín đáo nhất có thể 😑."], 
+            "January": ["Hình về mấy ng hok đc nhìu.", "Có thể phóng to ảnh để xem rõ hơn nha."],
+            "February": ["Tấm mặt mộc duy nhất."],
+            "March": ["Chọn lọc mấy tấm nhìn dịu dịu nhất 😑."], 
             "April": ["Moment cute hok thể quên 🙄."],
             "May": ["🤍❤️🩵🖤"],
-            "June": ["Tầm giữa năm mới tổng hợp đc nhìu hình hơn tí.", "Có những tháng hình xếp hok đúng thứ tự, đừng để ý quá nha."],
-            "July": ["Lúc này có mấy tattoo mới.", "Vừa đẹp mà cũng hơi dằm khăm."],
+            "June": ["Tầm giữa năm mới có nhìu hình.", "Thứ tự ảnh có thể hơi lệch tháng xíu nha."],
+            "July": ["Lúc này có mấy tatto mới.", "Vừa đẹp mà cũng hơi dằm khăm."],
             "August": ["Vibe nàng thơ 🤍."],
-            "September": ["Có những hình hok bik ghi gì, nên để icon thay tạm nha."],
-            "October": ["Tháng này có 2 sự kiện lớn: Update bản thân và đề cử giải thưởng."],
-            "November": ["Tháng này đang trong khoảng thgian nghỉ ngơi sau update."],
-            "December": ["Tóc mới. Mong là năm sau sẽ tổng hợp được nhiều hình hơn nữa."]
+            "September": ["Icon thay lời muốn nói nha."],
+            "October": ["Update bản thân & Đề cử giải thưởng lớn."],
+            "November": ["Đang nghỉ ngơi sau update."],
+            "December": ["Tóc mới cực xinh.", "Mong năm sau sẽ có nhiều hình hơn nữa."]
         };
 
-        const months = Object.keys(albumData);
-        const book = document.getElementById('myBook');
+        // --- CÁC BIẾN ĐIỀU KHIỂN GIAO DIỆN ---
+        let scale = 1;
+        let posX = 0;
+        let posY = 0;
+        let startX, startY;
+        let isDragging = false;
+        let lastPinchDistance = null;
+        let isPinching = false;
+        let clickPrevented = false; // Ngăn lật trang khi đang kéo
 
-        function isVideo(url) {
-            return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video');
-        }
+        const bookContainer = document.getElementById('book-container');
+        const book = document.getElementById('myBook');
+        const months = Object.keys(albumData);
+
+        function isVideo(url) { return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video'); }
 
         function createGridHTML(monthName, dataArray, noteText = "") {
-            if (!dataArray || dataArray.length === 0) {
-                return `<h2 class="month-title">${monthName}</h2><div class="page-note">${noteText}</div>`;
-            }
+            if (!dataArray || dataArray.length === 0) return `<h2 class="month-title">${monthName}</h2><div class="page-note">${noteText}</div>`;
             return `
                 <h2 class="month-title">${monthName}</h2>
                 <div class="polaroid-grid">
                     ${dataArray.map((item, i) => {
-                        const cap = item.caption || "2025 Memory";
-                        if (isVideo(item.url)) {
-                            return `<div class="polaroid" style="--r: ${i % 2 === 0 ? '-1deg' : '1deg'}">
-                                <video src="${item.url}" muted loop autoplay playsinline class="zoomable-video"></video>
-                                <small>${cap}</small>
+                        const caption = item.caption || "2025";
+                        return `
+                            <div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
+                                ${isVideo(item.url) 
+                                    ? `<video src="${item.url}" muted loop autoplay playsinline></video>` 
+                                    : `<img src="${item.url}">`}
+                                <small>${caption}</small>
                             </div>`;
-                        } else {
-                            return `<div class="polaroid" style="--r: ${i % 2 === 0 ? '-1deg' : '1deg'}">
-                                <img src="${item.url}" class="zoomable" loading="lazy">
-                                <small>${cap}</small>
-                            </div>`;
-                        }
                     }).join('')}
                 </div>
                 <div class="page-note">${noteText}</div>
             `;
         }
 
-        // Khởi tạo trang tháng 1
+        // --- KHỞI TẠO CÁC TRANG (GIỮ NGUYÊN LOGIC) ---
         document.getElementById('jan-first-half').innerHTML = createGridHTML("January", albumData["January"].slice(0, 4), monthNotes["January"][0]);
 
-        // Tạo các trang tiếp theo
         months.forEach((m, index) => {
             const p = document.createElement('div');
             p.className = 'page';
             p.style.zIndex = 50 - index;
-            
             const note2 = (monthNotes[m] && monthNotes[m][1]) ? monthNotes[m][1] : "";
             const frontHTML = `<div class="front">${createGridHTML(m, albumData[m].slice(4, 8), note2)}</div>`;
-            
             let backHTML = '<div class="back"></div>';
             if (index < months.length - 1) {
                 const nextM = months[index+1];
                 const note1 = (monthNotes[nextM] && monthNotes[nextM][0]) ? monthNotes[nextM][0] : "";
                 backHTML = `<div class="back">${createGridHTML(nextM, albumData[nextM].slice(0, 4), note1)}</div>`;
             } else {
-                backHTML = `<div class="back">
-                    <h2 class="month-title">Closing Words</h2>
-                    <img src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable">
-                    <p class="desc">Thêm một năm gắn bó với nhau. Dù có lúc bất đồng, tui vẫn mong tương lai tụi mình sẽ bền lâu hơn nữa.</p>
-                    <span class="sticker">❤️</span>
-                </div>`;
+                backHTML = `<div class="back"><h2 class="month-title">Closing</h2><img src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img"><p class="desc">Thêm một năm gắn bó. Mong tương lai tụi mình sẽ lâu bền hơn nữa.</p><span class="sticker">❤️</span></div>`;
             }
             p.innerHTML = frontHTML + backHTML;
             book.appendChild(p);
         });
 
-        // Trang Voice & Video
+        // Trang cuối & Lời nhắn
         const summaryPage = document.createElement('div');
-        summaryPage.className = 'page';
-        summaryPage.style.zIndex = 10;
-        summaryPage.innerHTML = `
-            <div class="front" style="overflow-y: auto;">
-                <h2 class="month-title">Share Little Moments</h2>
-                <div class="voice-card">
-                    <p style="font-size:0.75rem; font-weight:bold;">🎧 Tui có voice 1 đoạn ngắn gửi mấy ng...</p>
-                    <button id="btn-voice-play" class="btn-voice"><span>▶</span> Nghe Voice</button>
-                    <audio id="voice-message"><source src="./voice/voice.m4a" type="audio/mpeg"></audio>
-                </div>
-                <div class="video-card">
-                    <p style="font-size:0.75rem; font-weight:bold;">🎬 Thước phim ngắn tui muốn share</p>
-                    <div class="video-container">
-                        <video width="100%" controls preload="none"><source src="./video/thanks.mp4" type="video/mp4"></video>
-                    </div>
-                </div>
-            </div>
-            <div class="back">
-                <h2 class="month-title">A Little Message</h2>
-                <img src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable">
-                <p class="desc">Chúc Trang năm mới vui vẻ, gặp nhiều may mắn, công việc thuận lợi và luôn hạnh phúc.</p>
-            </div>
-        `;
+        summaryPage.className = 'page'; summaryPage.style.zIndex = 10;
+        summaryPage.innerHTML = `<div class="front" style="overflow-y: auto;"><h2 class="month-title">Moments</h2><div class="voice-card"><p style="font-size:0.7rem;">🎧 Nghe voice tui nha</p><button id="btn-voice-play" class="btn-voice">▶ Play</button><audio id="voice-message"><source src="./voice/voice.m4a" type="audio/mpeg"></audio></div><div class="video-card"><div class="video-container"><video width="100%" controls><source src="./video/thanks.mp4" type="video/mp4"></video></div></div></div><div class="back"><h2 class="month-title">A Message</h2><img src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img"><p class="desc">Chúc Trang năm mới vui vẻ, bình an và hạnh phúc.</p></div>`;
         book.appendChild(summaryPage);
 
-        // Trang cuối
         const finalPage = document.createElement('div');
-        finalPage.className = 'page';
-        finalPage.style.zIndex = 5;
-        finalPage.innerHTML = `
-            <div class="front cover-front" style="padding: 20px;">
-                <h2 style="font-family:'Dancing Script'; color:var(--accent-color); font-size: 1.8rem;">Gửi 2026</h2>
-                <textarea id="note-2026" placeholder="Viết những mục tiêu năm mới vào đây..."></textarea>
-                <button id="btn-close" style="margin-top: 15px; padding: 12px; cursor: pointer; border: none; width: 100%; background: var(--accent-color); font-weight: bold; font-family: 'Montserrat';">TẠM BIỆT 2025</button>
-            </div>
-            <div class="back cover-front"><h1>THE END</h1><p>2025</p></div>
-        `;
+        finalPage.className = 'page'; finalPage.style.zIndex = 5;
+        finalPage.innerHTML = `<div class="front cover-front"><h2>Gửi 2026</h2><textarea id="note-2026" placeholder="Ước nguyện năm mới..."></textarea><button id="btn-close" style="margin-top:10px; padding:10px; width:100%; background:var(--accent-color); font-weight:bold;">TẠM BIỆT 2025</button></div><div class="back cover-front"><h1>THE END</h1></div>`;
         book.appendChild(finalPage);
 
-        // Logic lật trang
-        const modal = document.getElementById('image-modal');
-        const modalContainer = document.getElementById('modal-container');
+        // --- HÀNH ĐỘNG CỦA SÁCH (CLICK/TOUCH) ---
+        function updateTransform() {
+            bookContainer.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+        }
 
         function initActions() {
             const allPages = document.querySelectorAll('.page');
             allPages.forEach((page, index) => {
                 const originalZ = parseInt(page.style.zIndex);
-
-                page.addEventListener('click', function(e) {
-                    if (isPinching) return;
-                    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || (e.target.tagName === 'VIDEO' && e.target.hasAttribute('controls')) || e.target.closest('.music-player')) return;
+                page.addEventListener('pointerup', function(e) {
+                    if (clickPrevented) return; // Không lật nếu vừa kéo xong
                     
-                    if (e.target.classList.contains('zoomable') || e.target.classList.contains('zoomable-video')) {
-                        e.stopPropagation();
-                        modal.style.display = "flex";
-                        modalContainer.innerHTML = "";
-                        const el = e.target.cloneNode(true);
-                        el.className = "modal-content";
-                        if (e.target.tagName === 'VIDEO') el.controls = true;
-                        modalContainer.appendChild(el);
+                    // Chặn lật nếu nhấn vào nút/video
+                    if (e.target.closest('.music-player') || e.target.tagName === 'BUTTON' || e.target.tagName === 'TEXTAREA' || (e.target.tagName === 'VIDEO' && e.target.hasAttribute('controls'))) return;
+
+                    // Phóng to ảnh/video khi chạm
+                    if (e.target.tagName === 'IMG' || (e.target.tagName === 'VIDEO' && !e.target.hasAttribute('controls'))) {
+                        const modal = document.getElementById('image-modal');
+                        const container = document.getElementById('modal-container');
+                        modal.style.display = "flex"; container.innerHTML = "";
+                        const el = document.createElement(e.target.tagName); el.src = e.target.src; el.className = "modal-content";
+                        if(e.target.tagName === 'VIDEO') el.controls = true;
+                        container.appendChild(el);
                         return;
                     }
 
+                    // Logic lật trang
                     if (this.classList.contains('flipped')) {
                         this.classList.remove('flipped');
                         setTimeout(() => { this.style.zIndex = originalZ; }, 400); 
@@ -628,49 +543,75 @@
                     }
                 });
             });
-            modal.onclick = () => { modal.style.display = "none"; modalContainer.innerHTML = ""; };
-        }
-        setTimeout(initActions, 100);
-
-        // ZOOM LOGIC - Tối ưu cho Mobile
-        const bookContainer = document.getElementById('book-container');
-        function updateZoom() {
-            bookContainer.style.transform = `scale(${currentScale}) translate3d(0,0,0)`;
+            document.getElementById('image-modal').onclick = function() { this.style.display = "none"; };
         }
 
-        document.getElementById('zoom-in').onclick = () => { if(currentScale < maxScale) { currentScale += 0.15; updateZoom(); } };
-        document.getElementById('zoom-out').onclick = () => { if(currentScale > minScale) { currentScale -= 0.15; updateZoom(); } };
-        document.getElementById('zoom-reset').onclick = () => { currentScale = isMobile ? 0.65 : 1; updateZoom(); };
-
-        let initialDistance = null;
-        let startScale = currentScale;
-
-        window.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                isPinching = true;
-                initialDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                startScale = currentScale;
-            }
-        }, { passive: false });
-
-        window.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2 && initialDistance !== null) {
-                e.preventDefault();
-                const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                let newScale = startScale * (dist / initialDistance);
-                if (newScale >= minScale && newScale <= maxScale) {
-                    currentScale = newScale;
-                    updateZoom();
-                }
-            }
-        }, { passive: false });
-
-        window.addEventListener('touchend', () => { 
-            setTimeout(() => { isPinching = false; }, 200);
-            initialDistance = null; 
+        // --- HÀNH ĐỘNG KÉO (PAN) VÀ PHÓNG TO (ZOOM) TRÊN MOBILE ---
+        window.addEventListener('pointerdown', e => {
+            if(e.target.closest('.zoom-controls') || e.target.closest('.music-player')) return;
+            isDragging = true;
+            startX = e.clientX - posX;
+            startY = e.clientY - posY;
+            clickPrevented = false;
         });
 
-        // NHẠC NỀN
+        window.addEventListener('pointermove', e => {
+            if (!isDragging || isPinching) return;
+            const newX = e.clientX - startX;
+            const newY = e.clientY - startY;
+            
+            // Nếu di chuyển quá 10px thì coi như là kéo, không phải click
+            if (Math.abs(newX - posX) > 10 || Math.abs(newY - posY) > 10) {
+                clickPrevented = true;
+            }
+            
+            posX = newX;
+            posY = newY;
+            updateTransform();
+        });
+
+        window.addEventListener('pointerup', () => { isDragging = false; });
+
+        // Pinch Zoom mượt hơn
+        window.addEventListener('touchstart', e => {
+            if (e.touches.length === 2) {
+                isPinching = true;
+                lastPinchDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+            }
+        }, {passive: false});
+
+        window.addEventListener('touchmove', e => {
+            if (isPinching && e.touches.length === 2) {
+                e.preventDefault();
+                const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                if (lastPinchDistance) {
+                    const delta = dist / lastPinchDistance;
+                    scale = Math.min(Math.max(scale * delta, 0.3), 4);
+                    updateTransform();
+                }
+                lastPinchDistance = dist;
+            }
+        }, {passive: false});
+
+        window.addEventListener('touchend', () => { isPinching = false; lastPinchDistance = null; });
+
+        // --- ZOOM BUTTONS ---
+        document.getElementById('zoom-in').onclick = () => { scale += 0.2; updateTransform(); };
+        document.getElementById('zoom-out').onclick = () => { scale = Math.max(0.3, scale - 0.2); updateTransform(); };
+        document.getElementById('zoom-reset').onclick = () => { autoFit(); };
+
+        // Tự động căn chỉnh album vừa màn hình
+        function autoFit() {
+            const screenWidth = window.innerWidth;
+            const bookWidth = 450;
+            // Nếu là mobile, thu nhỏ scale để thấy cả trang bìa (vì perspective làm nó to ra)
+            scale = (screenWidth < 600) ? (screenWidth / bookWidth) * 0.7 : 0.8;
+            posX = (screenWidth < 600) ? 0 : -100; // Dịch sang trái tí trên PC để cân đối khi mở
+            posY = 0;
+            updateTransform();
+        }
+
+        // --- NHẠC NỀN & WELCOME (GIỮ NGUYÊN) ---
         const playlist = [
             { title: "Make It Right", src: "./music/Make_It_Right.mp3" },
             { title: "Love On Replay", src: "./music/Love_On_Replay.mp3" },
@@ -678,34 +619,21 @@
             { title: "No Reason", src: "./music/No_Reason.mp3" },
             { title: "Cho Em An Toàn", src: "./music/Cho_Em_An_Toan.mp3" }
         ];
-        
         let currentSongIndex = 0;
         const bgMusic = document.getElementById('bg-music');
         const songTitle = document.getElementById('song-title');
         const playBtn = document.getElementById('play-pause');
 
-        function loadSong(index) { 
-            bgMusic.src = playlist[index].src; 
-            songTitle.innerText = playlist[index].title; 
-        }
+        function loadSong(index) { bgMusic.src = playlist[index].src; songTitle.innerText = playlist[index].title; }
+        function playSong() { bgMusic.play().catch(() => {}); playBtn.innerText = "⏸"; }
 
-        function playSong() {
-            bgMusic.play().catch(() => console.log("Chạm để phát nhạc"));
-            playBtn.innerText = "⏸";
-        }
-
-        playBtn.addEventListener('click', () => {
-            if (bgMusic.paused) playSong();
-            else { bgMusic.pause(); playBtn.innerText = "▶"; }
-        });
-
+        playBtn.onclick = () => { if (bgMusic.paused) playSong(); else { bgMusic.pause(); playBtn.innerText = "▶"; } };
         document.getElementById('next-song').onclick = () => { currentSongIndex = (currentSongIndex + 1) % playlist.length; loadSong(currentSongIndex); playSong(); };
         document.getElementById('prev-song').onclick = () => { currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length; loadSong(currentSongIndex); playSong(); };
         bgMusic.onended = () => document.getElementById('next-song').click();
-        loadSong(0);
+        loadSong(currentSongIndex);
 
-        // WELCOME
-        const welcomeText = "Hey\nMột năm nữa lại trôi qua\nTui có làm một album nhỏ về mấy ng, mình cùng xem nha\nMong là mấy ng sẽ thích nó";
+        const welcomeText = "Hey\nMột năm nữa lại trôi qua\nTui có làm một album nhỏ tặng mấy ng...\nMong là mấy ng sẽ thích nó";
         let charIdx = 0;
         function typeWriter() {
             if (charIdx < welcomeText.length) {
@@ -719,72 +647,66 @@
             document.getElementById('welcome-screen').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('welcome-screen').classList.add('hidden');
-                document.getElementById('book-container').style.display = 'block';
-                updateZoom();
+                bookContainer.style.display = 'block';
+                autoFit();
+                initActions();
                 playSong();
-            }, 800);
+            }, 1000);
         };
 
-        // SNOW - Tối ưu số lượng hạt cho mobile
-        const snowCanvas = document.getElementById('snow-canvas');
-        const sctx = snowCanvas.getContext('2d');
-        let snowParticles = [];
-        function resizeSnow() { snowCanvas.width = window.innerWidth; snowCanvas.height = window.innerHeight; }
-        window.onresize = resizeSnow; resizeSnow();
-
-        class Snowflake {
-            constructor() { this.reset(); }
-            reset() { this.x = Math.random() * snowCanvas.width; this.y = Math.random() * -snowCanvas.height; this.radius = Math.random() * 2 + 1; this.speed = Math.random() * 1 + 0.5; this.opacity = Math.random() * 0.5 + 0.2; }
-            update() { this.y += this.speed; if (this.y > snowCanvas.height) this.reset(); }
-            draw() { sctx.beginPath(); sctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); sctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`; sctx.fill(); }
+        // SNOW EFFECT (GIỮ NGUYÊN)
+        const sCanvas = document.getElementById('snow-canvas');
+        const sctx = sCanvas.getContext('2d');
+        let snow = [];
+        function resize() { sCanvas.width = window.innerWidth; sCanvas.height = window.innerHeight; }
+        window.onresize = resize; resize();
+        for(let i=0; i<50; i++) snow.push({x:Math.random()*sCanvas.width, y:Math.random()*sCanvas.height, r:Math.random()*3+1, s:Math.random()*1+0.5});
+        function drawSnow() {
+            sctx.clearRect(0,0,sCanvas.width,sCanvas.height);
+            sctx.fillStyle = "white"; sctx.beginPath();
+            snow.forEach(p => {
+                sctx.moveTo(p.x, p.y); sctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                p.y += p.s; if(p.y > sCanvas.height) p.y = -10;
+            });
+            sctx.fill(); requestAnimationFrame(drawSnow);
         }
-        // Giảm hạt trên mobile để mượt hơn
-        const particleCount = isMobile ? 35 : 70;
-        for (let i = 0; i < particleCount; i++) snowParticles.push(new Snowflake());
+        drawSnow();
 
-        function animateSnow() {
-            sctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
-            for (let p of snowParticles) { p.update(); p.draw(); }
-            requestAnimationFrame(animateSnow);
-        }
-        animateSnow();
-
-        // FIREWORKS
+        // PHÁO HOA KẾT THÚC
         document.getElementById('btn-close').onclick = () => {
-            const fCanvas = document.getElementById('fireworks-canvas');
-            const fctx = fCanvas.getContext('2d');
-            const nyText = document.getElementById('happy-new-year-text');
-            document.getElementById('myBook').style.transform = "scale(0) rotateY(-180deg)";
-            document.getElementById('myBook').style.opacity = "0";
+            book.style.transform = "scale(0)"; book.style.opacity = "0";
             setTimeout(() => {
-                document.getElementById('book-container').style.display = "none";
+                bookContainer.style.display = "none";
+                const fCanvas = document.getElementById('fireworks-canvas');
+                const nyText = document.getElementById('happy-new-year-text');
                 fCanvas.style.display = "block"; nyText.style.display = "block";
-                setTimeout(() => nyText.classList.add('show'), 100);
                 fCanvas.width = window.innerWidth; fCanvas.height = window.innerHeight;
-                let fwParticles = [];
-                function animateFW() {
+                setTimeout(() => nyText.classList.add('show'), 100);
+                const fctx = fCanvas.getContext('2d');
+                let parts = [];
+                function anim() {
                     fctx.fillStyle = 'rgba(15, 23, 42, 0.2)'; fctx.fillRect(0,0,fCanvas.width, fCanvas.height);
-                    if (Math.random() < 0.08) {
-                        let x = Math.random()*fCanvas.width, y = Math.random()*fCanvas.height*0.5, color = `hsl(${Math.random()*360}, 100%, 50%)`;
-                        for(let i=0; i<25; i++) fwParticles.push({x, y, color, vel:{x:(Math.random()-0.5)*8, y:(Math.random()-0.5)*8}, alpha:1});
+                    if(Math.random() < 0.1) {
+                        let x = Math.random()*fCanvas.width, y = Math.random()*fCanvas.height*0.5, c = `hsl(${Math.random()*360},100%,50%)`;
+                        for(let i=0; i<30; i++) parts.push({x, y, c, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, a:1});
                     }
-                    fwParticles.forEach((p, i) => {
-                        p.x += p.vel.x; p.y += p.vel.y; p.alpha -= 0.015;
-                        if (p.alpha <= 0) fwParticles.splice(i, 1);
-                        else { fctx.globalAlpha = p.alpha; fctx.beginPath(); fctx.arc(p.x, p.y, 2, 0, Math.PI*2); fctx.fillStyle = p.color; fctx.fill(); }
+                    parts.forEach((p,i) => {
+                        p.x+=p.vx; p.y+=p.vy; p.a-=0.01;
+                        if(p.a<=0) parts.splice(i,1);
+                        else { fctx.globalAlpha=p.a; fctx.fillStyle=p.c; fctx.beginPath(); fctx.arc(p.x,p.y,2,0,7); fctx.fill(); }
                     });
-                    requestAnimationFrame(animateFW);
+                    requestAnimationFrame(anim);
                 }
-                animateFW();
+                anim();
             }, 800);
         };
 
-        // Voice play toggle
-        document.addEventListener('click', (e) => {
-            if(e.target && e.target.id == 'btn-voice-play'){
+        // Voice play
+        document.addEventListener('click', e => {
+            if(e.target.id === 'btn-voice-play') {
                 const v = document.getElementById('voice-message');
-                if(v.paused) { v.play(); e.target.innerHTML = "<span>⏸</span> Đang Phát"; }
-                else { v.pause(); e.target.innerHTML = "<span>▶</span> PLAY"; }
+                if(v.paused) { v.play(); e.target.innerText = "⏸ Pause"; }
+                else { v.pause(); e.target.innerText = "▶ Play"; }
             }
         });
     </script>
