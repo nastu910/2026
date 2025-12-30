@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TRANG 2025 ALBUM</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Montserrat:wght@300;400&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
     <style>
@@ -12,11 +12,9 @@
             --text-color: #2c241e; 
             --accent-color: #eebc51; 
             --secondary-color: #a98467; 
-            --book-w: 450px;
-            --book-h: 580px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             background-color: var(--bg-color);
@@ -28,7 +26,48 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            width: 100vw;
+            touch-action: none; /* Ngăn chặn scroll mặc định trên mobile khi đang zoom */
+        }
+
+        /* ZOOM CONTROLS UI */
+        .zoom-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 4000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-color);
+            backdrop-filter: blur(5px);
+        }
+
+        .zoom-controls button {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid var(--accent-color);
+            background: transparent;
+            color: var(--accent-color);
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .zoom-controls button:hover {
+            background: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .zoom-info {
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.7rem;
+            text-align: center;
         }
 
         /* CANVAS EFFECTS */
@@ -49,12 +88,11 @@
             text-align: center;
             display: none;
             pointer-events: none;
-            width: 90%;
         }
 
         #happy-new-year-text h1 {
             font-family: 'Dancing Script', cursive;
-            font-size: clamp(3rem, 10vw, 5rem);
+            font-size: 5rem;
             color: var(--accent-color);
             text-shadow: 0 0 20px rgba(238, 188, 81, 0.8), 0 0 40px rgba(238, 188, 81, 0.4);
             opacity: 0;
@@ -76,15 +114,15 @@
             justify-content: center;
             align-items: center;
             transition: opacity 1s ease;
-            padding: 20px;
-            text-align: center;
         }
 
         .typing-text {
             font-family: 'Dancing Script', cursive;
-            font-size: clamp(1.2rem, 5vw, 2rem);
+            font-size: 2rem;
             margin-bottom: 2rem;
+            text-align: center;
             min-height: 1.5em;
+            padding: 0 20px;
             line-height: 1.6;
         }
 
@@ -99,27 +137,27 @@
             opacity: 0;
             font-family: 'Montserrat', sans-serif;
         }
-        .btn-start:hover { background: var(--accent-color); color: var(--bg-color); }
+        .btn-start:hover { 
+            background: var(--accent-color); 
+            color: var(--bg-color);
+        }
 
         /* BOOK STRUCTURE */
         .book-container { 
             perspective: 2000px; 
             display: none; 
             z-index: 10;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-origin: center center;
         }
 
         .book {
             position: relative;
-            width: var(--book-w);
-            height: var(--book-h);
+            width: 450px;
+            height: 580px;
             transition: transform 0.5s;
             transform-style: preserve-3d;
-            /* Căn giữa trang bìa ban đầu */
-            transform: translateX(0px); 
+            transform: translateX(225px); 
         }
 
         .page {
@@ -138,7 +176,7 @@
             width: 100%; height: 100%;
             top: 0; left: 0;
             backface-visibility: hidden;
-            padding: clamp(15px, 4vw, 30px);
+            padding: 30px;
             background: var(--paper-color);
             border: 1px solid #dcd3c7;
             display: flex;
@@ -163,10 +201,10 @@
 
         .main-cover-img {
             width: 90%;
-            max-height: 250px;
+            max-height: 300px;
             object-fit: contain; 
             border: 3px solid var(--accent-color);
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             border-radius: 4px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
             background: #2c241e;
@@ -176,28 +214,26 @@
 
         /* MUSIC PLAYER */
         .music-player {
-            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 2500;
-            background: rgba(15, 23, 42, 0.9); color: white;
-            padding: 8px 15px; border-radius: 30px; 
-            font-size: 0.75rem; display: flex; align-items: center; gap: 10px;
+            position: fixed; bottom: 20px; left: 20px; z-index: 500;
+            background: rgba(15, 23, 42, 0.85); color: white;
+            padding: 10px 20px; border-radius: 30px; 
+            font-size: 0.8rem; display: flex; align-items: center; gap: 12px;
             border: 1px solid rgba(238, 188, 81, 0.3);
             backdrop-filter: blur(5px);
-            width: max-content;
-            max-width: 90vw;
         }
         .song-info {
-            max-width: 120px; overflow: hidden; white-space: nowrap;
+            max-width: 150px; overflow: hidden; white-space: nowrap;
             text-overflow: ellipsis; color: var(--accent-color); font-weight: bold;
         }
-        .music-controls { display: flex; gap: 10px; align-items: center; }
-        .music-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1rem; }
+        .music-controls { display: flex; gap: 15px; align-items: center; }
+        .music-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1.1rem; }
 
         /* GRID & POLAROID */
         .month-title {
             font-family: 'Dancing Script', cursive;
-            font-size: clamp(1.5rem, 6vw, 2.2rem);
+            font-size: 2.2rem;
             color: var(--accent-color);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             border-bottom: 1px solid rgba(169, 132, 103, 0.3);
             text-align: center;
         }
@@ -206,35 +242,34 @@
             display: grid; 
             grid-template-columns: 1fr 1fr; 
             grid-template-rows: 1fr 1fr;
-            gap: 8px; 
+            gap: 12px; 
             flex-grow: 1;
-            align-items: center;
         }
 
         .polaroid {
             background: #faf9f6; 
-            padding: 5px 5px 12px 5px;
-            box-shadow: 2px 4px 8px rgba(0,0,0,0.1);
+            padding: 5px 5px 15px 5px;
+            box-shadow: 3px 5px 10px rgba(0,0,0,0.1);
             transform: rotate(var(--r));
             text-align: center;
-            height: 100%;
-            max-height: 170px;
+            height: 180px; 
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
         }
         .polaroid img, .polaroid video { 
             width: 100%; 
-            height: 110px; 
+            height: 130px; 
             object-fit: cover; 
             background: #eee; 
             border: 1px solid #ddd; 
             cursor: zoom-in;
         }
         .polaroid small { 
-            font-size: 0.6rem; 
+            font-size: 0.65rem; 
             font-family: 'Dancing Script', cursive; 
             color: #444; 
-            padding-top: 4px;
+            padding-top: 5px;
             display: block;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -243,7 +278,7 @@
         
         .full-img {
             width: 100%; 
-            height: 250px; 
+            height: 320px; 
             object-fit: contain; 
             background: #fdfdfd; 
             border: 5px solid white;
@@ -252,24 +287,26 @@
         }
 
         .desc { 
-            font-size: clamp(0.9rem, 3.5vw, 1.1rem);
-            line-height: 1.4; 
+            font-size: 1.1rem;
+            line-height: 1.5; 
             font-style: italic; 
             color: var(--text-color); 
             opacity: 0.9; 
-            margin-top: 10px; 
+            margin-top: 15px; 
             text-align: center; 
         }
 
+        /* GHI CHÚ TRANG THÁNG */
         .page-note {
-            margin-top: 10px;
-            font-size: 0.85rem;
-            line-height: 1.3;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            line-height: 1.4;
             color: #5d534a;
             font-style: italic;
             text-align: center;
+            min-height: 1.2em;
             border-top: 1px dashed rgba(169, 132, 103, 0.2);
-            padding-top: 8px;
+            padding-top: 10px;
         }
 
         /* ZOOM MODAL STYLES */
@@ -279,26 +316,30 @@
             z-index: 5000;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
+            background-color: rgba(0, 0, 0, 0.9);
             justify-content: center;
             align-items: center;
             cursor: zoom-out;
+            animation: fadeIn 0.3s ease;
         }
         .modal-content {
-            max-width: 95%;
-            max-height: 80%;
-            border: 4px solid white;
+            max-width: 90%;
+            max-height: 90%;
+            border: 5px solid white;
             border-radius: 4px;
-            object-fit: contain;
+            background: white;
+            animation: zoomIn 0.3s ease forwards;
         }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.8); } to { transform: scale(1); } }
 
         /* VOICE & VIDEO */
         .voice-card, .video-card {
             background: rgba(169, 132, 103, 0.1);
             border: 1px dashed var(--secondary-color);
             border-radius: 10px;
-            padding: 10px;
-            margin-top: 8px;
+            padding: 12px;
+            margin-top: 10px;
             text-align: center;
         }
         .video-container {
@@ -310,33 +351,32 @@
         }
         .btn-voice {
             background: var(--secondary-color);
-            color: white; border: none; padding: 6px 12px; border-radius: 20px;
-            cursor: pointer; font-family: inherit; margin: 5px auto; font-size: 0.8rem;
+            color: white; border: none; padding: 8px 15px; border-radius: 20px;
+            cursor: pointer; font-family: inherit; margin: 5px auto;
         }
 
         #note-2026 {
-            width: 100%; height: 70px; margin-top: 10px; 
+            width: 100%; height: 80px; margin-top: 10px; 
             background: rgba(255,255,255,0.1); border: 1px solid var(--accent-color); 
-            color: white; padding: 10px; font-family: inherit; font-size: 0.9rem;
+            color: white; padding: 10px; font-family: inherit;
         }
 
-        .sticker { position: absolute; bottom: 10px; right: 10px; font-size: 1.2rem; }
+        .sticker { position: absolute; bottom: 15px; right: 15px; font-size: 1.5rem; }
         .hidden { display: none !important; }
         .fade-in { opacity: 1 !important; }
 
-        /* RESPONSIVE SCALE FOR MOBILE */
+        /* MOBILE OPTIMIZATION */
         @media (max-width: 600px) {
-            :root {
-                --book-w: 85vw;
-                --book-h: 70vh;
+            .book {
+                width: 320px;
+                height: 450px;
+                transform: translateX(160px); 
             }
-            .book { transform: translateX(0); } /* Luôn giữa màn hình mobile */
-            .main-cover-img { max-height: 180px; }
-            .full-img { height: 180px; }
-            .polaroid-grid { gap: 5px; }
-            .polaroid { max-height: 140px; }
-            .polaroid img, .polaroid video { height: 85px; }
-            .music-player { bottom: 10px; }
+            .month-title { font-size: 1.8rem; }
+            .desc { font-size: 0.9rem; }
+            .polaroid { height: 130px; }
+            .polaroid img, .polaroid video { height: 90px; }
+            #happy-new-year-text h1 { font-size: 3rem; }
         }
     </style>
 </head>
@@ -344,10 +384,17 @@
     <canvas id="snow-canvas"></canvas>
     <canvas id="fireworks-canvas"></canvas>
 
+    <div class="zoom-controls" id="zoom-ui" style="display:none;">
+        <button id="zoom-in">+</button>
+        <button id="zoom-out">−</button>
+        <button id="zoom-reset">⟲</button>
+        <div class="zoom-info" id="zoom-percent">100%</div>
+    </div>
+
     <div id="happy-new-year-text"><h1>Happy New Year 2026</h1></div>
 
     <div id="image-modal" class="image-modal">
-        <div id="modal-container" style="display: flex; justify-content: center; align-items: center; width: 100%;"></div>
+        <div id="modal-container" style="display: flex; justify-content: center; align-items: center;"></div>
     </div>
 
     <div class="music-player">
@@ -367,13 +414,12 @@
 
     <div class="book-container" id="book-container">
         <div class="book" id="myBook">
-            
             <div class="page" style="z-index: 60;">
                 <div class="front cover-front">
                     <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img">
-                    <h1 style="font-size: 1.5rem;">MIUZXC/TRANG 2025</h1>
+                    <h1>MIUZXC/TRANG 2025 ALBUM</h1>
                     <p>— Cùng xem lại một năm qua —</p>
-                    <small style="margin-top: 15px; opacity: 0.8;">Chạm để mở album</small>
+                    <small style="margin-top: 20px; opacity: 0.8;">Chạm để mở album</small>
                 </div>
                 <div class="back">
                     <h2 class="month-title">MOMENT</h2>
@@ -386,16 +432,15 @@
             <div class="page" style="z-index: 59;">
                 <div class="front">
                     <h2 class="month-title">Opening Words</h2>
-                    <p class="desc" style="font-size: 0.95rem; text-align: left;">Dear Trang 2025,<br>
+                    <p class="desc" style="font-size: 1.1rem; text-align: left;">Dear Trang 2025,<br>
                         <br> Lúc đầu muốn tặng gì đó cho mấy ng vào cuối năm, xong hok bik tặng gì, rồi có ý tưởng là làm một cuốn album về mấy ng trong một năm qua.<br>
                         <br> Chiếc album nhỏ này tui làm tổng hợp các hình ảnh từ social, pm về mấy ng một năm qua.<br>
-                        <br> Phần nhạc coi như tôi đánh cược ik, tuy đc cho tên nhạc rồi, nhưng tui chọn nhạc theo cảm tính, mong là sẽ tâm đầu ý hợp với gu nhạc của mấy ng.<br>
+                        <br> Phần nhạc coi như tôi đánh cược ik, tuy đc cho tên nhạc rồi, nhưng tui chọn nhạc theo cảm tính, mong là sẽ tâm đầu ý hợp với gu nhạc của mấy ng. Tui có add thêm 1 bài khác vô, cho là bài này sẽ nói ra một chút tấm lòng của tui dành cho mấy ng.<br>
                         <br> Đây là lần đầu tiên tui làm cái này, nếu có sai sót gì hãy bỏ qua cho tui.</p>
                     <span class="sticker">✍️</span>
                 </div>
                 <div class="back" id="jan-first-half"></div>
             </div>
-
         </div>
     </div>
 
@@ -464,7 +509,7 @@
                 { url: "https://i.postimg.cc/9XZBpLZ2/pic4_t10.png", caption: "Bunny 🐰" },
                 { url: "https://i.postimg.cc/zDKkjxKY/pic5_t10.png", caption: "Little crazy 🤪" },
                 { url: "https://i.postimg.cc/VsnFRKn8/pic6_t10.png", caption: "Precious" },
-                { url: "https://i.postimg.cc/GmHR4YwV/pic7_t10.png", caption: "🏆 Teen Creator 2025" },
+                { url: "https://i.postimg.cc/GmHR4YwV/pic7_t10.png", caption: "1 chút thành tựu nhỏ của năm 🏆" },
                 { url: "./video/video1_t10.mp4", caption: "Chill chill get home" },
             ],
             "November": [
@@ -487,26 +532,50 @@
         };
 
         const monthNotes = {
-            "January": ["Những tháng đầu hình về mấy ng hok đc nhìu.", "Chạm ảnh để phóng to nha."],
-            "February": ["Tấm mặt mộc duy nhất nè."],
-            "March": ["Album chọn lọc mấy tấm dịu dịu nhất 😑."], 
+            "January": ["Những tháng đầu hình về mấy ng hok đc nhìu.", "Lúc đưa hình vô đây có bị bóp, cắt bớt ảnh, nên tui có thêm tính năng phóng to ảnh, phòng trường hợp cần xem ảnh rõ hơn."],
+            "February": ["Tấm mặt mộc duy nhất, hôm đó chắc say quá xong gửi cho tui xem."],
+            "March": ["Album này tui chọn lọc mấy tấm nhìn dịu dịu, kín đáo nhất có thể 😑."], 
             "April": ["Moment cute hok thể quên 🙄."],
             "May": ["🤍❤️🩵🖤"],
-            "June": ["Tầm giữa năm hình nhiều hơn tí.", "Thứ tự ảnh có thể hơi lệch xíu nha."],
-            "July": ["Lúc này có mấy tattoo mới nè.", "Đẹp mà cũng hơi dằm khăm."],
+            "June": ["Tầm giữa năm mới tổng hợp đc nhìu hình hơn tí.", "Có tháng hình nhiều, nên là mấy tháng sau có ảnh xếp hok đúng tháng, nên cũng đừng để ý quá nha."],
+            "July": ["Lúc này chơi với bn xong có mấy tatto mới.", "Vừa đẹp mà cũng hơi dằm khăm."],
             "August": ["Vibe nàng thơ 🤍."],
-            "September": ["Mấy tấm này để icon thay lời muốn nói nha."],
-            "October": ["Tháng này có 2 sự kiện lớn.", "Teen Creator of the Year 2025!"],
-            "November": ["Tháng nghỉ ngơi sau update."],
-            "December": ["Tóc mới nè.", "Mong năm sau tụi mình có nhiều hình hơn nữa."]
+            "September": ["Có những hình hok bik ghi gì, nên để icon thay tạm nha."],
+            "October": ["Tháng này 2 có sự kiện. 1 là update bản thân.", "2 là được đề cử hạng mục Teen Creator of the Year tại xHamster Awards 2025."],
+            "November": ["Tháng này đang trong khoảng thgian nghỉ ngơi sau update."],
+            "December": ["Tóc mới", "Đây là những gì tui tổng hợp được.\n Mong là năm sau sẽ tổng hợp được nhiều hơn"]
         };
 
         const months = Object.keys(albumData);
         const book = document.getElementById('myBook');
+        const bookContainer = document.getElementById('book-container');
 
-        function isVideo(url) {
-            return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video');
+        /* --- ZOOM LOGIC --- */
+        let currentScale = 1;
+        const zoomStep = 0.1;
+        const maxZoom = 2.5;
+        const minZoom = 0.3;
+
+        function updateZoom(newScale) {
+            currentScale = Math.min(Math.max(newScale, minZoom), maxZoom);
+            bookContainer.style.transform = `scale(${currentScale})`;
+            document.getElementById('zoom-percent').innerText = Math.round(currentScale * 100) + "%";
         }
+
+        document.getElementById('zoom-in').onclick = () => updateZoom(currentScale + zoomStep);
+        document.getElementById('zoom-out').onclick = () => updateZoom(currentScale - zoomStep);
+        document.getElementById('zoom-reset').onclick = () => updateZoom(1);
+
+        // Zoom bằng chuột (Ctrl + cuộn chuột)
+        window.addEventListener('wheel', (e) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                updateZoom(currentScale + (e.deltaY < 0 ? zoomStep : -zoomStep));
+            }
+        }, { passive: false });
+
+        /* --- NỘI DUNG ALBUM --- */
+        function isVideo(url) { return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video'); }
 
         function createGridHTML(monthName, dataArray, noteText = "") {
             if (!dataArray || dataArray.length === 0) {
@@ -530,8 +599,7 @@
                         }
                     }).join('')}
                 </div>
-                <div class="page-note">${noteText}</div>
-            `;
+                <div class="page-note">${noteText}</div>`;
         }
 
         document.getElementById('jan-first-half').innerHTML = createGridHTML("January", albumData["January"].slice(0, 4), monthNotes["January"][0]);
@@ -548,41 +616,30 @@
                 const note1 = (monthNotes[nextM] && monthNotes[nextM][0]) ? monthNotes[nextM][0] : "";
                 backHTML = `<div class="back">${createGridHTML(nextM, albumData[nextM].slice(0, 4), note1)}</div>`;
             } else {
-                backHTML = `<div class="back">
-                    <h2 class="month-title">Closing Words</h2>
-                    <img src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable">
-                    <p class="desc">Thêm một năm gắn bó với nhau. Mong là tương lai tụi mình có thể gắn bó lâu hơn nữa.</p>
-                    <span class="sticker">❤️</span>
-                </div>`;
+                backHTML = `<div class="back"><h2 class="month-title">Closing Words</h2><img src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable"><p class="desc">Thêm một năm gắn bó với nhau. Trong thời gian qua cũng có lúc tụi mình bất đồng với nhau, xong cũng làm lành.<br>Tui cũng chỉ mong là trong tương lai tụi mình có thể gắn bó với nhau nhiều hơn, lâu hơn nữa.</p><span class="sticker">❤️</span></div>`;
             }
             p.innerHTML = frontHTML + backHTML;
             book.appendChild(p);
         });
 
+        // Add Final Pages
         const summaryPage = document.createElement('div');
         summaryPage.className = 'page';
         summaryPage.style.zIndex = 10;
         summaryPage.innerHTML = `
             <div class="front" style="overflow-y: auto;">
-                <h2 class="month-title">Moments</h2>
+                <h2 class="month-title">Share Little Moments</h2>
                 <div class="voice-card">
-                    <p style="font-size:0.75rem;">🎧 Nghe thử voice ngắn của tui nha...</p>
+                    <p style="font-size:0.8rem; font-weight:bold;">🎧 Tui có voice 1 đoạn ngắn...</p>
                     <button id="btn-voice-play" class="btn-voice"><span>▶</span> Nghe Voice</button>
                     <audio id="voice-message"><source src="./voice/voice.m4a" type="audio/mpeg"></audio>
                 </div>
                 <div class="video-card">
-                    <p style="font-size:0.75rem;">🎬 Thước phim ngắn tặng mấy ng</p>
-                    <div class="video-container">
-                        <video width="100%" controls><source src="./video/thanks.mp4" type="video/mp4"></video>
-                    </div>
+                    <p style="font-size:0.8rem; font-weight:bold;">🎬 Thước phim ngắn</p>
+                    <div class="video-container"><video width="100%" controls><source src="./video/thanks.mp4" type="video/mp4"></video></div>
                 </div>
             </div>
-            <div class="back">
-                <h2 class="month-title">A Little Message</h2>
-                <img src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable">
-                <p class="desc">Chúc Trang năm mới vui vẻ, may mắn, công việc thuận lợi và luôn hạnh phúc.</p>
-            </div>
-        `;
+            <div class="back"><h2 class="month-title">A Little Message</h2><img src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable"><p class="desc">Bỏ qua mọi muộn phiền của năm nay, chuẩn bị hành trang cho một năm mới.<br>Chúc Trang năm mới vui vẻ, gặp nhiều may mắn...</p></div>`;
         book.appendChild(summaryPage);
 
         const finalPage = document.createElement('div');
@@ -590,12 +647,11 @@
         finalPage.style.zIndex = 5;
         finalPage.innerHTML = `
             <div class="front cover-front" style="padding: 20px;">
-                <h2 style="font-family:'Dancing Script'; color:var(--accent-color); font-size: 1.8rem;">Gửi 2026</h2>
-                <textarea id="note-2026" placeholder="Viết mục tiêu năm mới vào đây..."></textarea>
+                <h2 style="font-family:'Dancing Script'; color:var(--accent-color); font-size: 2rem;">Gửi 2026</h2>
+                <textarea id="note-2026" placeholder="Ước nguyện năm mới..."></textarea>
                 <button id="btn-close" style="margin-top: 15px; padding: 12px; cursor: pointer; border: none; width: 100%; background: var(--accent-color); font-weight: bold; font-family: 'Montserrat';">TẠM BIỆT 2025</button>
             </div>
-            <div class="back cover-front"><h1>THE END</h1><p>2025</p></div>
-        `;
+            <div class="back cover-front"><h1>THE END</h1><p>2025</p></div>`;
         book.appendChild(finalPage);
 
         const modal = document.getElementById('image-modal');
@@ -606,14 +662,18 @@
             allPages.forEach((page, index) => {
                 const originalZ = parseInt(page.style.zIndex);
                 page.addEventListener('click', function(e) {
-                    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || (e.target.tagName === 'VIDEO' && e.target.hasAttribute('controls')) || e.target.closest('.music-player')) return;
+                    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || (e.target.tagName === 'VIDEO' && e.target.hasAttribute('controls')) || e.target.closest('.music-player') || e.target.closest('.zoom-controls')) return;
                     if (e.target.tagName === 'IMG' || (e.target.tagName === 'VIDEO' && !e.target.hasAttribute('controls'))) {
                         e.stopPropagation();
                         modal.style.display = "flex";
                         modalContainer.innerHTML = "";
-                        const el = document.createElement(e.target.tagName === 'VIDEO' ? 'video' : 'img');
-                        el.src = e.target.src; if(e.target.tagName === 'VIDEO') el.controls = true;
-                        el.className = "modal-content"; modalContainer.appendChild(el);
+                        if (e.target.tagName === 'VIDEO') {
+                            const v = document.createElement('video'); v.src = e.target.src; v.controls = true; v.autoplay = true; v.className = "modal-content";
+                            modalContainer.appendChild(v);
+                        } else {
+                            const img = document.createElement('img'); img.src = e.target.src; img.className = "modal-content";
+                            modalContainer.appendChild(img);
+                        }
                         return;
                     }
                     if (this.classList.contains('flipped')) {
@@ -625,11 +685,11 @@
                     }
                 });
             });
-            modal.onclick = () => { modal.style.display = "none"; };
+            modal.onclick = () => { modal.style.display = "none"; modalContainer.innerHTML = ""; };
         }
         setTimeout(initActions, 100);
 
-        /* NHẠC NỀN */
+        /* --- NHẠC NỀN --- */
         const playlist = [
             { title: "Make It Right", src: "./music/Make_It_Right.mp3" },
             { title: "Love On Replay", src: "./music/Love_On_Replay.mp3" },
@@ -645,20 +705,20 @@
         const prevBtn = document.getElementById('prev-song');
 
         function loadSong(index) { bgMusic.src = playlist[index].src; songTitle.innerText = playlist[index].title; }
-        function playSong() { bgMusic.play().catch(() => {}); playBtn.innerText = "⏸"; }
+        function playSong() { bgMusic.play().catch(e => console.log("Cần tương tác")); playBtn.innerText = "⏸"; }
         playBtn.addEventListener('click', () => { if (bgMusic.paused) playSong(); else { bgMusic.pause(); playBtn.innerText = "▶"; } });
         nextBtn.addEventListener('click', () => { currentSongIndex = (currentSongIndex + 1) % playlist.length; loadSong(currentSongIndex); playSong(); });
         prevBtn.addEventListener('click', () => { currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length; loadSong(currentSongIndex); playSong(); });
-        bgMusic.addEventListener('ended', () => nextBtn.click());
+        bgMusic.addEventListener('ended', () => { nextBtn.click(); });
         loadSong(currentSongIndex);
 
-        /* WELCOME */
-        const welcomeText = "Hey\nMột năm nữa lại trôi qua\nTui làm một album nhỏ tặng mấy ng\nMong là mấy ng sẽ thích nó ✨";
+        /* --- WELCOME & START --- */
+        const welcomeText = "Hey\nMột năm nữa lại trôi qua\nTui có làm một album nhỏ về mấy ng, mình cùng xem nha\n Mong là mấy ng sẽ thích nó";
         let charIdx = 0;
         function typeWriter() {
             if (charIdx < welcomeText.length) {
                 document.getElementById("typewriter").innerHTML += welcomeText.charAt(charIdx) === '\n' ? '<br>' : welcomeText.charAt(charIdx);
-                charIdx++; setTimeout(typeWriter, 50);
+                charIdx++; setTimeout(typeWriter, 60);
             } else { document.getElementById("btn-start").classList.add("fade-in"); }
         }
         window.onload = typeWriter;
@@ -667,58 +727,62 @@
             document.getElementById('welcome-screen').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('welcome-screen').classList.add('hidden');
-                document.getElementById('book-container').style.display = 'flex';
+                document.getElementById('book-container').style.display = 'block';
+                document.getElementById('zoom-ui').style.display = 'flex';
+                // Tự động scale nhỏ lại nếu màn hình quá bé
+                if(window.innerWidth < 500) updateZoom(0.7);
                 playSong();
             }, 1000);
         });
 
-        /* SNOW */
+        /* --- SNOW --- */
         const snowCanvas = document.getElementById('snow-canvas');
         const sctx = snowCanvas.getContext('2d');
+        let snowParticles = [];
         function resizeSnow() { snowCanvas.width = window.innerWidth; snowCanvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeSnow); resizeSnow();
-        let snowParticles = Array.from({length: 50}, () => ({ x: Math.random()*innerWidth, y: Math.random()*innerHeight, r: Math.random()*3+1, s: Math.random()*1+0.5 }));
-        function animateSnow() {
-            sctx.clearRect(0,0,innerWidth,innerHeight);
-            snowParticles.forEach(p => {
-                p.y += p.s; if(p.y > innerHeight) p.y = -10;
-                sctx.beginPath(); sctx.arc(p.x, p.y, p.r, 0, Math.PI*2); sctx.fillStyle = "white"; sctx.fill();
-            });
-            requestAnimationFrame(animateSnow);
+        class Snowflake {
+            constructor() { this.reset(); }
+            reset() { this.x = Math.random() * snowCanvas.width; this.y = Math.random() * -snowCanvas.height; this.radius = Math.random() * 3 + 1; this.speed = Math.random() * 1 + 0.5; this.opacity = Math.random() * 0.5 + 0.3; }
+            update() { this.y += this.speed; if (this.y > snowCanvas.height) this.reset(); }
+            draw() { sctx.beginPath(); sctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); sctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`; sctx.fill(); }
         }
+        for (let i = 0; i < 70; i++) snowParticles.push(new Snowflake());
+        function animateSnow() { sctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height); snowParticles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateSnow); }
         animateSnow();
 
-        /* FIREWORKS & CLOSE */
+        /* --- FIREWORKS & CLOSE --- */
         document.getElementById('btn-close').addEventListener('click', () => {
             const fCanvas = document.getElementById('fireworks-canvas');
             const fctx = fCanvas.getContext('2d');
-            document.getElementById('myBook').style.transform = "scale(0)";
+            const nyText = document.getElementById('happy-new-year-text');
+            document.getElementById('zoom-ui').style.display = 'none';
+            document.getElementById('myBook').style.transform = "scale(0) rotateY(-180deg)";
             document.getElementById('myBook').style.opacity = "0";
             setTimeout(() => {
                 document.getElementById('book-container').style.display = "none";
-                fCanvas.style.display = "block"; 
-                document.getElementById('happy-new-year-text').style.display = "block";
-                setTimeout(() => document.getElementById('happy-new-year-text').classList.add('show'), 100);
-                fCanvas.width = innerWidth; fCanvas.height = innerHeight;
-                let fw = [];
+                fCanvas.style.display = "block"; nyText.style.display = "block";
+                setTimeout(() => { nyText.classList.add('show'); }, 100);
+                fCanvas.width = window.innerWidth; fCanvas.height = window.innerHeight;
+                let fwParticles = [];
                 function animateFW() {
-                    fctx.fillStyle = 'rgba(15, 23, 42, 0.2)'; fctx.fillRect(0,0,innerWidth, innerHeight);
+                    fctx.fillStyle = 'rgba(15, 23, 42, 0.2)'; fctx.fillRect(0,0,fCanvas.width, fCanvas.height);
                     if (Math.random() < 0.1) {
-                        let x = Math.random()*innerWidth, y = Math.random()*innerHeight*0.5, color = `hsl(${Math.random()*360}, 100%, 50%)`;
-                        for(let i=0; i<30; i++) fw.push({x, y, color, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8, a:1});
+                        let x = Math.random()*fCanvas.width, y = Math.random()*fCanvas.height*0.5, color = `hsl(${Math.random()*360}, 100%, 50%)`;
+                        for(let i=0; i<30; i++) fwParticles.push({x, y, color, vel:{x:(Math.random()-0.5)*10, y:(Math.random()-0.5)*10}, alpha:1});
                     }
-                    fw.forEach((p, i) => {
-                        p.x += p.vx; p.y += p.vy; p.a -= 0.01;
-                        if(p.a<=0) fw.splice(i,1);
-                        else { fctx.globalAlpha=p.a; fctx.beginPath(); fctx.arc(p.x, p.y, 2, 0, Math.PI*2); fctx.fillStyle=p.color; fctx.fill(); }
+                    fwParticles.forEach((p, i) => {
+                        p.x += p.vel.x; p.y += p.vel.y; p.alpha -= 0.01;
+                        if (p.alpha <= 0) fwParticles.splice(i, 1);
+                        else { fctx.globalAlpha = p.alpha; fctx.beginPath(); fctx.arc(p.x, p.y, 2, 0, Math.PI*2); fctx.fillStyle = p.color; fctx.fill(); }
                     });
                     requestAnimationFrame(animateFW);
                 }
                 animateFW();
-            }, 800);
+            }, 1000);
         });
 
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', function(e) {
             if(e.target && e.target.id == 'btn-voice-play'){
                 const v = document.getElementById('voice-message');
                 if(v.paused) { v.play(); e.target.innerHTML = "<span>⏸</span> Đang Phát"; }
