@@ -424,7 +424,7 @@
 
     <script>
         // CÁC BIẾN TOÀN CỤC CHO ZOOM
-        let currentScale = 0.5;
+        let currentScale = 0.4;
         const minScale = 0.2;
         const maxScale = 3;
         let isPinching = false; // Flag chặn click khi đang zoom
@@ -803,6 +803,7 @@
             setTimeout(() => {
                 document.getElementById('welcome-screen').classList.add('hidden');
                 document.getElementById('book-container').style.display = 'block';
+                updateZoom
                 playSong();
             }, 1000);
         });
