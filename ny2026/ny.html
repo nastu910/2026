@@ -14,29 +14,34 @@
             --secondary-color: #a98467; 
         }
 
-        /* Chặn chọn văn bản và menu ngữ cảnh trên toàn trang */
+        /* RESET CƠ BẢN */
         * { 
             margin: 0; padding: 0; box-sizing: border-box; 
             -webkit-tap-highlight-color: transparent; 
-            -webkit-touch-callout: none; /* iOS: chặn menu khi giữ lâu */
-            -webkit-user-select: none;   /* Chrome/Safari: chặn chọn text */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
             user-select: none; 
         }
-
-        /* Cho phép chọn text ở input/textarea */
         input, textarea { -webkit-user-select: auto; user-select: auto; }
 
-        body {
+        html {
             background-color: var(--bg-color);
             background: radial-gradient(ellipse at center, #1e293b 0%, #0f172a 100%);
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: transparent; 
             font-family: 'Dancing Script', cursive;
             color: var(--text-color);
             overflow: hidden; 
-            width: 100vw;
-            height: 100vh;
-            touch-action: none; /* Quan trọng: Chặn trình duyệt can thiệp vào vuốt/kéo */
-            overscroll-behavior: none; /* Chặn hiệu ứng kéo nảy của iOS */
-            position: fixed; /* Cố định body để tránh rung lắc */
+            width: 100%;
+            height: 100%;
+            position: fixed; 
+            touch-action: none; 
+            overscroll-behavior: none;
         }
 
         /* KHUNG CHỨA TOÀN BỘ ĐỂ ZOOM/PAN */
@@ -48,8 +53,8 @@
             align-items: center;
             overflow: visible;
             transform-origin: center center;
-            transition: transform 0.1s linear; /* Đổi sang linear để mượt hơn khi drag */
-            will-change: transform; /* Tối ưu GPU */
+            transition: transform 0.1s linear;
+            will-change: transform;
         }
 
         /* CANVAS EFFECTS */
@@ -75,7 +80,7 @@
 
         #happy-new-year-text h1 {
             font-family: 'Dancing Script', cursive;
-            font-size: 3.5rem; /* Giảm nhẹ size cho mobile */
+            font-size: 3.5rem;
             color: var(--accent-color);
             text-shadow: 0 0 20px rgba(238, 188, 81, 0.8);
             opacity: 0;
@@ -120,7 +125,7 @@
             opacity: 0;
             font-family: 'Montserrat', sans-serif;
             font-size: 1rem;
-            pointer-events: auto; /* Đảm bảo nút bấm được */
+            pointer-events: auto;
         }
         .btn-start:active { 
             background: var(--accent-color); 
@@ -135,14 +140,13 @@
             width: 450px;
             height: 580px;
             position: relative;
-            transform: translateZ(0); /* Ép render GPU */
+            transform-style: preserve-3d;
         }
 
         .book {
             position: relative;
             width: 100%;
             height: 100%;
-            transition: transform 0.5s;
             transform-style: preserve-3d;
             display: flex;
             justify-content: center; 
@@ -154,30 +158,32 @@
             top: 0; left: 0;
             transform-origin: left;
             transform-style: preserve-3d;
-            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+            /* TỐI ƯU: Giảm thời gian xuống 0.6s và dùng curve mượt hơn */
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
             cursor: pointer;
-            will-change: transform, z-index; /* Tối ưu hiệu năng lật trang */
+            will-change: transform, z-index;
         }
 
         .front, .back {
             position: absolute;
             width: 100%; height: 100%;
             top: 0; left: 0;
-            -webkit-backface-visibility: hidden; /* Quan trọng cho Safari */
+            -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
             padding: 20px 25px;
             background: var(--paper-color);
             border: 1px solid #dcd3c7;
             display: flex;
             flex-direction: column;
-            box-shadow: inset 3px 0 10px rgba(0,0,0,0.1);
-            transform: translateZ(0); /* Fix lỗi nhấp nháy trên Android */
+            /* Giảm bớt shadow nặng để tăng FPS */
+            box-shadow: inset 2px 0 5px rgba(0,0,0,0.05);
+            transform: translateZ(0); /* Kích hoạt GPU layer */
         }
 
         .back { 
-            transform: rotateY(180deg) translateZ(0.1px); /* Đẩy nhẹ Z để không bị đè vân */
+            transform: rotateY(180deg);
             background: #ede6d8; 
-            box-shadow: inset -3px 0 10px rgba(0,0,0,0.1);
+            box-shadow: inset -2px 0 5px rgba(0,0,0,0.05);
         }
 
         .cover-front {
@@ -264,15 +270,15 @@
         .polaroid {
             background: #faf9f6; 
             padding: 4px 4px 12px 4px;
-            box-shadow: 2px 3px 8px rgba(0,0,0,0.1);
+            box-shadow: 2px 3px 6px rgba(0,0,0,0.1); /* Giảm shadow */
             transform: rotate(var(--r));
             text-align: center;
             height: 160px; 
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            /* Tối ưu render ảnh con */
             transform: translateZ(0) rotate(var(--r));
+            will-change: transform;
         }
         .polaroid img, .polaroid video { 
             width: 100%; 
@@ -383,7 +389,6 @@
         .hidden { display: none !important; }
         .fade-in { opacity: 1 !important; }
 
-        /* Hướng dẫn vuốt */
         #swipe-hint {
             position: fixed;
             bottom: 80px;
@@ -438,7 +443,7 @@
         <div class="book-container" id="book-container">
             <div class="book" id="myBook">
                 
-                <div class="page" style="z-index: 60;" data-page="0">
+                <div class="page" id="page-0" data-page="0">
                     <div class="front cover-front">
                         <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img">
                         <h1>MIUZXC/TRANG 2025 ALBUM</h1>
@@ -453,7 +458,7 @@
                     </div>
                 </div>
 
-                <div class="page" style="z-index: 59;" data-page="1">
+                <div class="page" id="page-1" data-page="1">
                     <div class="front">
                         <h2 class="month-title">Opening Words</h2>
                         <p class="desc" style="font-size: 1.1rem; text-align: left;">Dear Trang 2025,<br>
@@ -619,12 +624,19 @@
             `;
         }
 
+        // Setup Page 0 & 1 are explicitly in HTML. Setup content for Page 1 Back.
         document.getElementById('jan-first-half').innerHTML = createGridHTML("January", albumData["January"].slice(0, 4), monthNotes["January"][0]);
+        // Set initial Z-Index for Page 0 and 1
+        document.getElementById('page-0').style.zIndex = 50;
+        document.getElementById('page-1').style.zIndex = 49;
+
 
         months.forEach((m, index) => {
             const p = document.createElement('div');
             p.className = 'page';
-            p.style.zIndex = 50 - index;
+            
+            // Logic xếp Z-index tĩnh (khi chưa lật): Trang đầu cao nhất, trang sau thấp dần
+            p.style.zIndex = 50 - (index + 2); // +2 vì đã có page 0 và 1
             p.dataset.page = index + 2; 
             
             const note2 = (monthNotes[m] && monthNotes[m][1]) ? monthNotes[m][1] : "";
@@ -652,7 +664,7 @@
 
         const summaryPage = document.createElement('div');
         summaryPage.className = 'page';
-        summaryPage.style.zIndex = 10;
+        summaryPage.style.zIndex = 50 - (months.length + 2);
         summaryPage.dataset.page = months.length + 2;
         summaryPage.innerHTML = `
             <div class="front" style="overflow-y: auto;">
@@ -680,7 +692,7 @@
 
         const finalPage = document.createElement('div');
         finalPage.className = 'page';
-        finalPage.style.zIndex = 5;
+        finalPage.style.zIndex = 50 - (months.length + 3);
         finalPage.dataset.page = months.length + 3;
         finalPage.innerHTML = `
             <div class="front cover-front" style="padding: 20px;">
@@ -692,25 +704,40 @@
         `;
         book.appendChild(finalPage);
 
-        // --- PAGE FLIP LOGIC ---
+        // --- PAGE FLIP LOGIC (OPTIMIZED FOR SPEED) ---
+        let isFlipping = false;
+
         function flipPage(pageElement, forceState = null) {
-            const pageNum = parseInt(pageElement.dataset.page || 0);
+            if (isFlipping) return;
             
-            // Logic: if flipped, unflip. If not, flip.
-            let shouldFlip = forceState !== null ? forceState : !pageElement.classList.contains('flipped');
+            const pageNum = parseInt(pageElement.dataset.page || 0);
+            const isCurrentlyFlipped = pageElement.classList.contains('flipped');
+            let shouldFlip = forceState !== null ? forceState : !isCurrentlyFlipped;
+
+            if (shouldFlip === isCurrentlyFlipped) return;
+
+            isFlipping = true;
 
             if (shouldFlip) {
+                // LẬT ĐI (Phải -> Trái)
+                pageElement.style.zIndex = 200 + pageNum; 
                 pageElement.classList.add('flipped');
-                // Nâng z-index lên cao ngay lập tức để đè lên các trang khác khi lật
-                pageElement.style.zIndex = 100 + pageNum;
+
+                // Tăng tốc độ trả lại trạng thái (600ms thay vì 800ms)
+                setTimeout(() => {
+                    pageElement.style.zIndex = 50 + pageNum;
+                    isFlipping = false;
+                }, 600);
+
             } else {
+                // LẬT VỀ (Trái -> Phải)
+                pageElement.style.zIndex = 200 + pageNum; 
                 pageElement.classList.remove('flipped');
-                // Trì hoãn việc giảm z-index để hiệu ứng lật ngược hoàn tất mà không bị cắt hình
-                setTimeout(() => { 
-                    if (!pageElement.classList.contains('flipped')) {
-                        pageElement.style.zIndex = 50 - pageNum; 
-                    }
-                }, 400); 
+
+                setTimeout(() => {
+                    pageElement.style.zIndex = 50 - pageNum; 
+                    isFlipping = false;
+                }, 600);
             }
         }
 
@@ -719,7 +746,7 @@
         let startX = 0, startY = 0;
         let transX = 0, transY = 0;
         let isDragging = false;
-        let isMoved = false; // Flag kiểm tra xem có di chuyển không (để phân biệt click và drag)
+        let isMoved = false; 
         const viewport = document.getElementById('viewport');
         const bookContainer = document.getElementById('book-container');
 
@@ -756,7 +783,6 @@
         let initialScale = 1;
 
         viewport.addEventListener('touchstart', (e) => {
-            // Nếu chạm vào video controls hoặc audio, không can thiệp
             if (e.target.tagName === 'AUDIO' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
             if (e.touches.length === 2) {
@@ -779,7 +805,7 @@
         viewport.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2 && initialPinchDistance) {
                 // Pinch move
-                e.preventDefault(); // Chặn zoom mặc định
+                e.preventDefault(); 
                 const dist = Math.hypot(
                     e.touches[0].pageX - e.touches[1].pageX,
                     e.touches[0].pageY - e.touches[1].pageY
@@ -789,13 +815,12 @@
                 updateTransform();
             } else if (e.touches.length === 1 && isDragging) {
                 // Drag move
-                // Tính khoảng cách di chuyển để xác định đây là Drag chứ không phải Click
                 const dx = Math.abs(e.touches[0].pageX - (startX + transX));
                 const dy = Math.abs(e.touches[0].pageY - (startY + transY));
                 
                 if (dx > 5 || dy > 5) {
                     isMoved = true;
-                    e.preventDefault(); // Chặn scroll mặc định khi đang drag
+                    e.preventDefault(); 
                     transX = e.touches[0].pageX - startX;
                     transY = e.touches[0].pageY - startY;
                     updateTransform();
@@ -845,7 +870,6 @@
 
         bookContainer.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
-            // Chỉ lật trang nếu không phải là đang drag/zoom canvas
             if (!isMoved) handleSwipe();
         }, {passive: true});
 
@@ -886,15 +910,11 @@
             const allPages = document.querySelectorAll('.page');
             allPages.forEach((page, index) => {
                 
-                // Sử dụng touchend và check biến isMoved để xử lý click trên mobile tốt hơn
                 page.addEventListener('click', function(e) {
-                    // Nếu đã di chuyển (drag) thì không tính là click
-                    if (isMoved) return;
+                    if (isMoved || isFlipping) return;
 
-                    // Ignore clicks on controls
                     if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || (e.target.tagName === 'VIDEO' && e.target.hasAttribute('controls')) || e.target.closest('.music-player')) return;
                     
-                    // Zoom logic for images
                     if (e.target.classList.contains('zoomable') || e.target.classList.contains('zoomable-video')) {
                         e.stopPropagation();
                         modal.style.display = "flex";
@@ -909,7 +929,6 @@
                         return;
                     }
 
-                    // Click to flip (still active along with swipe)
                     if (this.classList.contains('flipped')) {
                         flipPage(this, false);
                     } else {
@@ -988,7 +1007,7 @@
                 document.getElementById('book-container').style.display = 'block';
                 document.getElementById('swipe-hint').style.display = 'block';
                 setTimeout(() => { document.getElementById('swipe-hint').style.display = 'none'; }, 5000);
-                autoFitBook(); // Auto zoom on start
+                autoFitBook(); 
                 playSong();
             }, 1000);
         });
