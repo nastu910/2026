@@ -290,23 +290,35 @@
             will-change: transform;
         }
 
-        /* TỐI ƯU 2: Thêm hiệu ứng fade-in cho ảnh/video lazy load để UX mượt hơn */
+        /* HIỆU ỨNG LOADING SHIMMER MỚI CHO ẢNH */
+        @keyframes skeleton-glow {
+            0% { background-color: #e0dcd3; }
+            50% { background-color: #f4efdf; }
+            100% { background-color: #e0dcd3; }
+        }
+
         .lazy-media {
             opacity: 0;
             transition: opacity 0.4s ease-in;
         }
         .lazy-media.loaded {
             opacity: 1;
+            background: transparent; /* Xóa nền khi đã load xong */
         }
 
         .polaroid img, .polaroid video { 
             width: 100%; 
             height: 115px; 
             object-fit: cover; 
-            background: #e0dcd3; /* Màu nền chờ (skeleton) */
+            background: #e0dcd3;
             border: 1px solid #ddd; 
             pointer-events: none; 
         }
+        
+        .polaroid img:not(.loaded), .polaroid video:not(.loaded) {
+            animation: skeleton-glow 1.5s infinite ease-in-out;
+        }
+
         .polaroid img.zoomable, .polaroid video.zoomable-video { pointer-events: auto; }
 
         .polaroid small { 
@@ -327,6 +339,10 @@
             background: #fdfdfd; 
             border: 5px solid white;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .full-img:not(.loaded) {
+            animation: skeleton-glow 1.5s infinite ease-in-out;
         }
 
         .desc { 
@@ -612,13 +628,11 @@
             return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video');
         }
 
-        // TỐI ƯU CỐT LÕI: Thêm cờ `isEager` để cho phép các trang đầu tải ngay lập tức thay vì đợi lật
         function createGridHTML(monthName, dataArray, noteText = "", isEager = false) {
             if (!dataArray || dataArray.length === 0) {
                 return `<h2 class="month-title">${monthName}</h2><div class="page-note">${noteText}</div>`;
             }
 
-            // Nếu eager = true, xài src thay vì data-src
             const srcAttr = isEager ? 'src' : 'data-src';
             const loadClass = isEager ? 'loaded' : '';
 
@@ -636,7 +650,7 @@
                         } else {
                             return `
                                 <div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
-                                    <img ${srcAttr}="${item.url}" class="zoomable lazy-media ${loadClass}" decoding="async">
+                                    <img ${srcAttr}="${item.url}" loading="lazy" class="zoomable lazy-media ${loadClass}" decoding="async">
                                     <small>${captionText}</small>
                                 </div>`;
                         }
@@ -646,11 +660,9 @@
             `;
         }
 
-        // Tải Tháng 1 ngay lập tức (isEager = true) để không bị hụt khi lật mở bìa ra
         document.getElementById('jan-first-half').innerHTML = createGridHTML("January", albumData["January"].slice(0, 4), monthNotes["January"][0], true);
         document.getElementById('page-0').style.zIndex = 50;
         document.getElementById('page-1').style.zIndex = 49;
-
 
         months.forEach((m, index) => {
             const p = document.createElement('div');
@@ -671,7 +683,7 @@
                 backHTML = `
                     <div class="back">
                         <h2 class="month-title">Closing Words</h2>
-                        <img data-src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable lazy-media" decoding="async">
+                        <img data-src="https://i.postimg.cc/gJw31s3R/pic3.png" loading="lazy" class="full-img zoomable lazy-media" decoding="async">
                         <p class="desc">Thêm một năm gắn bó với nhau. Trong thời gian qua cũng có lúc tụi mình bất đồng với nhau, xong cũng làm lành.
                             <br>Tui cũng chỉ mong là trong tương lai tụi mình có thể gắn bó với nhau nhiều hơn, lâu hơn nữa.</p>
                         <span class="sticker">❤️</span>
@@ -703,7 +715,7 @@
             </div>
             <div class="back">
                 <h2 class="month-title">A Little Message</h2>
-                <img data-src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable lazy-media" decoding="async">
+                <img data-src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" loading="lazy" class="full-img zoomable lazy-media" decoding="async">
                 <p class="desc">Một năm qua vui có, buồn có, nhưng cũng là một năm đáng nhớ. Bỏ qua mọi muộn phiền của năm nay, chuẩn bị hành trang cho một năm mới.
                     <br>Chúc Trang năm mới vui vẻ, gặp nhiều may mắn, công viêc thuận lợi, gia đình bình an và hạnh phúc.</p>
             </div>
@@ -759,6 +771,7 @@
 
             isFlipping = true;
 
+            // Logic pre-load xuất sắc của bạn: Load trước 2 trang
             if (shouldFlip) {
                 loadMediaForPage(pageNum + 1); 
                 loadMediaForPage(pageNum + 2); 
@@ -1034,36 +1047,10 @@
             } else { document.getElementById("btn-start").classList.add("fade-in"); }
         }
 
-        // --- CƠ CHẾ BACKGROUND PRELOAD (TẢI NGẦM ẢNH) ---
-        // Giúp tải ngầm tất cả ảnh vào bộ nhớ Cache trong lúc user đang đọc màn hình Welcome
-        function startBackgroundPreload() {
-            const allMediaUrls = [];
-            Object.values(albumData).forEach(monthArr => {
-                monthArr.forEach(item => {
-                    if (!isVideo(item.url)) {
-                        allMediaUrls.push(item.url);
-                    }
-                });
-            });
-
-            let i = 0;
-            function loadNextImage() {
-                if (i >= allMediaUrls.length) return;
-                const img = new Image();
-                img.src = allMediaUrls[i];
-                img.onload = loadNextImage; // Xong tấm này kéo tiếp tấm kia
-                img.onerror = loadNextImage; // Lỗi cũng cho qua kéo tiếp
-                i++;
-            }
-            loadNextImage();
-        }
-
         document.addEventListener("DOMContentLoaded", function() {
             typeWriter();
             resizeSnow();
-            // Kích hoạt tiến trình tải ngầm 1.5 giây sau khi DOM load
-            // (Thời gian lúc user đang bận đọc chữ Welcome)
-            setTimeout(startBackgroundPreload, 1500);
+            // Xóa hàm startBackgroundPreload tại đây
         });
 
         document.getElementById('btn-start').addEventListener('click', () => {
