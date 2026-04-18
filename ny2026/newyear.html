@@ -10,11 +10,15 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Montserrat:wght@300;400&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
     
+    <!-- FIX 1: Preload nhiều ảnh đầu album hơn ngay tại đây -->
     <link rel="preload" as="image" href="https://i.postimg.cc/mg8CH9xR/pic0.png">
     <link rel="preload" as="image" href="https://i.postimg.cc/yNb8DqTQ/pic1.png">
-    
     <link rel="preload" as="image" href="https://i.postimg.cc/3NYZ4KPp/pic1_t1.png">
     <link rel="preload" as="image" href="https://i.postimg.cc/WzT7F2Qq/pic2_t1.png">
+    <link rel="preload" as="image" href="https://i.postimg.cc/pry8wp8m/pic1_t2.png">
+    <link rel="preload" as="image" href="https://i.postimg.cc/qvYkwgBQ/pic1_t3.png">
+    <link rel="preload" as="image" href="https://i.postimg.cc/CxtF7dM6/pic2_t3.png">
+    <link rel="preload" as="image" href="https://i.postimg.cc/wjJ6Wgt7/pic1_t4.png">
 
     <style>
         :root {
@@ -25,7 +29,6 @@
             --secondary-color: #a98467; 
         }
 
-        /* RESET CƠ BẢN */
         * { 
             margin: 0; padding: 0; box-sizing: border-box; 
             -webkit-tap-highlight-color: transparent; 
@@ -55,7 +58,6 @@
             overscroll-behavior: none;
         }
 
-        /* KHUNG CHỨA TOÀN BỘ ĐỂ ZOOM/PAN */
         #viewport {
             width: 100%;
             height: 100%;
@@ -68,7 +70,6 @@
             will-change: transform;
         }
 
-        /* CANVAS EFFECTS */
         #snow-canvas, #fireworks-canvas {
             position: fixed;
             top: 0; left: 0;
@@ -101,7 +102,6 @@
 
         #happy-new-year-text.show h1 { opacity: 1; transform: scale(1); }
 
-        /* WELCOME SCREEN */
         #welcome-screen {
             position: fixed;
             inset: 0;
@@ -143,7 +143,6 @@
             color: var(--bg-color);
         }
 
-        /* BOOK STRUCTURE */
         .book-container { 
             perspective: 2500px; 
             display: none; 
@@ -217,7 +216,6 @@
 
         .page.flipped { transform: rotateY(-180deg); }
 
-        /* CONTROLS (ZOOM) */
         .zoom-controls {
             position: fixed;
             top: 20px;
@@ -240,7 +238,6 @@
         }
         .zoom-btn:active { background: var(--accent-color); color: #000; }
 
-        /* MUSIC PLAYER */
         .music-player {
             position: fixed; bottom: 20px; left: 20px; z-index: 500;
             background: rgba(15, 23, 42, 0.85); color: white;
@@ -257,7 +254,6 @@
         .music-controls { display: flex; gap: 10px; align-items: center; }
         .music-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1.1rem; padding: 5px;}
 
-        /* GRID & POLAROID */
         .month-title {
             font-family: 'Dancing Script', cursive;
             font-size: 2rem;
@@ -280,7 +276,6 @@
             background: #faf9f6; 
             padding: 4px 4px 12px 4px;
             box-shadow: 2px 3px 6px rgba(0,0,0,0.1);
-            transform: rotate(var(--r));
             text-align: center;
             height: 160px; 
             display: flex;
@@ -290,35 +285,32 @@
             will-change: transform;
         }
 
-        /* HIỆU ỨNG LOADING SHIMMER MỚI CHO ẢNH */
-        @keyframes skeleton-glow {
-            0% { background-color: #e0dcd3; }
-            50% { background-color: #f4efdf; }
-            100% { background-color: #e0dcd3; }
-        }
-
+        /* FIX 2: Skeleton placeholder + fade-in mượt hơn */
         .lazy-media {
             opacity: 0;
-            transition: opacity 0.4s ease-in;
+            transition: opacity 0.3s ease-in;
+            background: linear-gradient(90deg, #e0dcd3 25%, #ece8e1 50%, #e0dcd3 75%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s infinite;
         }
         .lazy-media.loaded {
             opacity: 1;
-            background: transparent; /* Xóa nền khi đã load xong */
+            animation: none;
+            background: none;
+        }
+
+        @keyframes skeleton-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
 
         .polaroid img, .polaroid video { 
             width: 100%; 
             height: 115px; 
             object-fit: cover; 
-            background: #e0dcd3;
             border: 1px solid #ddd; 
             pointer-events: none; 
         }
-        
-        .polaroid img:not(.loaded), .polaroid video:not(.loaded) {
-            animation: skeleton-glow 1.5s infinite ease-in-out;
-        }
-
         .polaroid img.zoomable, .polaroid video.zoomable-video { pointer-events: auto; }
 
         .polaroid small { 
@@ -339,10 +331,6 @@
             background: #fdfdfd; 
             border: 5px solid white;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .full-img:not(.loaded) {
-            animation: skeleton-glow 1.5s infinite ease-in-out;
         }
 
         .desc { 
@@ -367,7 +355,6 @@
             padding-top: 8px;
         }
 
-        /* ZOOM MODAL STYLES */
         .image-modal {
             display: none;
             position: fixed;
@@ -392,7 +379,6 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes zoomIn { from { transform: scale(0.8); } to { transform: scale(1); } }
 
-        /* VOICE & VIDEO */
         .voice-card, .video-card {
             background: rgba(169, 132, 103, 0.1);
             border: 1px dashed var(--secondary-color);
@@ -628,6 +614,51 @@
             return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video');
         }
 
+        // =============================================
+        // FIX 3: PARALLEL IMAGE PRELOADER
+        // Tải song song tất cả ảnh cùng lúc thay vì tuần tự
+        // =============================================
+        const imageCache = new Set();
+        function preloadImagesParallel(urls) {
+            const imageUrls = urls.filter(u => !isVideo(u) && !imageCache.has(u));
+            if (imageUrls.length === 0) return Promise.resolve();
+            
+            imageUrls.forEach(u => imageCache.add(u));
+            
+            return Promise.all(
+                imageUrls.map(url => new Promise(resolve => {
+                    const img = new Image();
+                    img.onload = resolve;
+                    img.onerror = resolve; // Lỗi cũng resolve để không block
+                    img.src = url;
+                }))
+            );
+        }
+
+        // FIX 4: Preload theo nhóm page (mỗi lần lật load thêm 2 trang kế tiếp)
+        function getUrlsForPageRange(startPage, endPage) {
+            const urls = [];
+            const allPages = document.querySelectorAll('.page');
+            for (let i = startPage; i <= Math.min(endPage, allPages.length - 1); i++) {
+                const page = allPages[i];
+                // Thu thập cả data-src lẫn src đang có
+                page.querySelectorAll('[data-src]').forEach(el => urls.push(el.dataset.src));
+            }
+            // Cũng lấy từ albumData theo index trang
+            return urls;
+        }
+
+        // Lấy tất cả URL ảnh của N tháng đầu để preload trước
+        function getUrlsForFirstNMonths(n) {
+            const urls = [];
+            months.slice(0, n).forEach(m => {
+                albumData[m].forEach(item => {
+                    if (!isVideo(item.url)) urls.push(item.url);
+                });
+            });
+            return urls;
+        }
+
         function createGridHTML(monthName, dataArray, noteText = "", isEager = false) {
             if (!dataArray || dataArray.length === 0) {
                 return `<h2 class="month-title">${monthName}</h2><div class="page-note">${noteText}</div>`;
@@ -650,7 +681,7 @@
                         } else {
                             return `
                                 <div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
-                                    <img ${srcAttr}="${item.url}" loading="lazy" class="zoomable lazy-media ${loadClass}" decoding="async">
+                                    <img ${srcAttr}="${item.url}" class="zoomable lazy-media ${loadClass}" decoding="async">
                                     <small>${captionText}</small>
                                 </div>`;
                         }
@@ -660,6 +691,7 @@
             `;
         }
 
+        // Tải Tháng 1 ngay lập tức
         document.getElementById('jan-first-half').innerHTML = createGridHTML("January", albumData["January"].slice(0, 4), monthNotes["January"][0], true);
         document.getElementById('page-0').style.zIndex = 50;
         document.getElementById('page-1').style.zIndex = 49;
@@ -667,7 +699,6 @@
         months.forEach((m, index) => {
             const p = document.createElement('div');
             p.className = 'page';
-            
             p.style.zIndex = 50 - (index + 2);
             p.dataset.page = index + 2; 
             
@@ -683,7 +714,7 @@
                 backHTML = `
                     <div class="back">
                         <h2 class="month-title">Closing Words</h2>
-                        <img data-src="https://i.postimg.cc/gJw31s3R/pic3.png" loading="lazy" class="full-img zoomable lazy-media" decoding="async">
+                        <img data-src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable lazy-media" decoding="async">
                         <p class="desc">Thêm một năm gắn bó với nhau. Trong thời gian qua cũng có lúc tụi mình bất đồng với nhau, xong cũng làm lành.
                             <br>Tui cũng chỉ mong là trong tương lai tụi mình có thể gắn bó với nhau nhiều hơn, lâu hơn nữa.</p>
                         <span class="sticker">❤️</span>
@@ -715,7 +746,7 @@
             </div>
             <div class="back">
                 <h2 class="month-title">A Little Message</h2>
-                <img data-src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" loading="lazy" class="full-img zoomable lazy-media" decoding="async">
+                <img data-src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable lazy-media" decoding="async">
                 <p class="desc">Một năm qua vui có, buồn có, nhưng cũng là một năm đáng nhớ. Bỏ qua mọi muộn phiền của năm nay, chuẩn bị hành trang cho một năm mới.
                     <br>Chúc Trang năm mới vui vẻ, gặp nhiều may mắn, công viêc thuận lợi, gia đình bình an và hạnh phúc.</p>
             </div>
@@ -736,26 +767,35 @@
         `;
         book.appendChild(finalPage);
 
-        const allPagesInBook = document.querySelectorAll('.page');
-        
-        function loadMediaForPage(pageIndex) {
-            if (pageIndex < 0 || pageIndex >= allPagesInBook.length) return;
-            const page = allPagesInBook[pageIndex];
-            
-            if (page.dataset.loaded === 'true') return;
+        // =============================================
+        // FIX 5: loadMediaForPage cải tiến - tự mark loaded sau khi inject src
+        // =============================================
+        const loadedPages = new Set();
 
+        function loadMediaForPage(pageIndex) {
+            const allPages = document.querySelectorAll('.page');
+            if (pageIndex < 0 || pageIndex >= allPages.length) return;
+            if (loadedPages.has(pageIndex)) return;
+            loadedPages.add(pageIndex);
+
+            const page = allPages[pageIndex];
             const mediaElements = page.querySelectorAll('.lazy-media[data-src]');
+            
             mediaElements.forEach(media => {
-                media.src = media.dataset.src;
+                const src = media.dataset.src;
                 media.removeAttribute('data-src');
-                
+
                 if (media.tagName === 'IMG') {
+                    // FIX 6: Nếu ảnh đã được cache bởi preloader, nó sẽ load gần như ngay lập tức
                     media.onload = () => media.classList.add('loaded');
-                } else {
+                    media.onerror = () => media.classList.add('loaded'); // Tránh skeleton mãi mãi
+                    media.src = src;
+                } else if (media.tagName === 'VIDEO') {
                     media.onloadeddata = () => media.classList.add('loaded');
+                    media.src = src;
+                    media.load();
                 }
             });
-            page.dataset.loaded = 'true';
         }
 
         let isFlipping = false;
@@ -771,10 +811,12 @@
 
             isFlipping = true;
 
-            // Logic pre-load xuất sắc của bạn: Load trước 2 trang
+            // FIX 7: Load trang hiện tại + 3 trang tiếp theo TRƯỚC khi flip animation
             if (shouldFlip) {
+                loadMediaForPage(pageNum);
                 loadMediaForPage(pageNum + 1); 
-                loadMediaForPage(pageNum + 2); 
+                loadMediaForPage(pageNum + 2);
+                loadMediaForPage(pageNum + 3); // Thêm 1 trang buffer
             } else {
                 loadMediaForPage(pageNum - 1);
                 loadMediaForPage(pageNum - 2);
@@ -783,16 +825,13 @@
             if (shouldFlip) {
                 pageElement.style.zIndex = 200 + pageNum; 
                 pageElement.classList.add('flipped');
-
                 setTimeout(() => {
                     pageElement.style.zIndex = 50 + pageNum;
                     isFlipping = false;
                 }, 600);
-
             } else {
                 pageElement.style.zIndex = 200 + pageNum; 
                 pageElement.classList.remove('flipped');
-
                 setTimeout(() => {
                     pageElement.style.zIndex = 50 - pageNum; 
                     isFlipping = false;
@@ -956,13 +995,14 @@
         const modalContainer = document.getElementById('modal-container');
 
         function initActions() {
+            // Load 4 trang đầu ngay lập tức
             loadMediaForPage(0);
             loadMediaForPage(1);
             loadMediaForPage(2);
+            loadMediaForPage(3);
 
             const allPages = document.querySelectorAll('.page');
             allPages.forEach((page, index) => {
-                
                 page.addEventListener('click', function(e) {
                     if (isMoved || isFlipping) return;
 
@@ -1047,10 +1087,30 @@
             } else { document.getElementById("btn-start").classList.add("fade-in"); }
         }
 
+        // =============================================
+        // FIX 8: PARALLEL PRELOAD trong lúc welcome screen hiển thị
+        // Tải song song theo batch - ưu tiên các tháng đầu trước
+        // =============================================
+        function startBackgroundPreload() {
+            // Batch 1: 4 tháng đầu - tải ngay lập tức, song song
+            const batch1 = getUrlsForFirstNMonths(4);
+            preloadImagesParallel(batch1).then(() => {
+                // Batch 2: 4 tháng tiếp theo - sau khi batch 1 xong
+                const batch2 = getUrlsForFirstNMonths(8).filter(u => !batch1.includes(u));
+                preloadImagesParallel(batch2).then(() => {
+                    // Batch 3: Còn lại
+                    const allUrls = getUrlsForFirstNMonths(months.length);
+                    const batch3 = allUrls.filter(u => !batch1.includes(u) && !batch2.includes(u));
+                    preloadImagesParallel(batch3);
+                });
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             typeWriter();
             resizeSnow();
-            // Xóa hàm startBackgroundPreload tại đây
+            // Bắt đầu preload ngay sau 500ms (user đang đọc welcome text)
+            setTimeout(startBackgroundPreload, 500);
         });
 
         document.getElementById('btn-start').addEventListener('click', () => {
@@ -1116,22 +1176,12 @@
 
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('#btn-voice-play');
-            
             if (btn) {
                 const v = document.getElementById('voice-message');
                 if (!v) return;
-
-                v.onended = function() {
-                    btn.innerHTML = "<span>▶</span> Nghe Voice";
-                };
-
-                if (v.paused) {
-                    v.play();
-                    btn.innerHTML = "<span>⏸</span> Đang Phát";
-                } else {
-                    v.pause(); 
-                    btn.innerHTML = "<span>▶</span> Nghe Voice"; 
-                }
+                v.onended = function() { btn.innerHTML = "<span>▶</span> Nghe Voice"; };
+                if (v.paused) { v.play(); btn.innerHTML = "<span>⏸</span> Đang Phát"; }
+                else { v.pause(); btn.innerHTML = "<span>▶</span> Nghe Voice"; }
             }
         });
     </script>
