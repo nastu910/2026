@@ -10,15 +10,10 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Montserrat:wght@300;400&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
     
-    <!-- FIX 1: Preload nhiều ảnh đầu album hơn ngay tại đây -->
     <link rel="preload" as="image" href="https://i.postimg.cc/mg8CH9xR/pic0.png">
     <link rel="preload" as="image" href="https://i.postimg.cc/yNb8DqTQ/pic1.png">
     <link rel="preload" as="image" href="https://i.postimg.cc/3NYZ4KPp/pic1_t1.png">
     <link rel="preload" as="image" href="https://i.postimg.cc/WzT7F2Qq/pic2_t1.png">
-    <link rel="preload" as="image" href="https://i.postimg.cc/pry8wp8m/pic1_t2.png">
-    <link rel="preload" as="image" href="https://i.postimg.cc/qvYkwgBQ/pic1_t3.png">
-    <link rel="preload" as="image" href="https://i.postimg.cc/CxtF7dM6/pic2_t3.png">
-    <link rel="preload" as="image" href="https://i.postimg.cc/wjJ6Wgt7/pic1_t4.png">
 
     <style>
         :root {
@@ -285,7 +280,6 @@
             will-change: transform;
         }
 
-        /* FIX 2: Skeleton placeholder + fade-in mượt hơn */
         .lazy-media {
             opacity: 0;
             transition: opacity 0.3s ease-in;
@@ -614,51 +608,6 @@
             return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video');
         }
 
-        // =============================================
-        // FIX 3: PARALLEL IMAGE PRELOADER
-        // Tải song song tất cả ảnh cùng lúc thay vì tuần tự
-        // =============================================
-        const imageCache = new Set();
-        function preloadImagesParallel(urls) {
-            const imageUrls = urls.filter(u => !isVideo(u) && !imageCache.has(u));
-            if (imageUrls.length === 0) return Promise.resolve();
-            
-            imageUrls.forEach(u => imageCache.add(u));
-            
-            return Promise.all(
-                imageUrls.map(url => new Promise(resolve => {
-                    const img = new Image();
-                    img.onload = resolve;
-                    img.onerror = resolve; // Lỗi cũng resolve để không block
-                    img.src = url;
-                }))
-            );
-        }
-
-        // FIX 4: Preload theo nhóm page (mỗi lần lật load thêm 2 trang kế tiếp)
-        function getUrlsForPageRange(startPage, endPage) {
-            const urls = [];
-            const allPages = document.querySelectorAll('.page');
-            for (let i = startPage; i <= Math.min(endPage, allPages.length - 1); i++) {
-                const page = allPages[i];
-                // Thu thập cả data-src lẫn src đang có
-                page.querySelectorAll('[data-src]').forEach(el => urls.push(el.dataset.src));
-            }
-            // Cũng lấy từ albumData theo index trang
-            return urls;
-        }
-
-        // Lấy tất cả URL ảnh của N tháng đầu để preload trước
-        function getUrlsForFirstNMonths(n) {
-            const urls = [];
-            months.slice(0, n).forEach(m => {
-                albumData[m].forEach(item => {
-                    if (!isVideo(item.url)) urls.push(item.url);
-                });
-            });
-            return urls;
-        }
-
         function createGridHTML(monthName, dataArray, noteText = "", isEager = false) {
             if (!dataArray || dataArray.length === 0) {
                 return `<h2 class="month-title">${monthName}</h2><div class="page-note">${noteText}</div>`;
@@ -767,9 +716,6 @@
         `;
         book.appendChild(finalPage);
 
-        // =============================================
-        // FIX 5: loadMediaForPage cải tiến - tự mark loaded sau khi inject src
-        // =============================================
         const loadedPages = new Set();
 
         function loadMediaForPage(pageIndex) {
@@ -786,10 +732,12 @@
                 media.removeAttribute('data-src');
 
                 if (media.tagName === 'IMG') {
-                    // FIX 6: Nếu ảnh đã được cache bởi preloader, nó sẽ load gần như ngay lập tức
-                    media.onload = () => media.classList.add('loaded');
-                    media.onerror = () => media.classList.add('loaded'); // Tránh skeleton mãi mãi
+                    // Logic xử lý hiển thị ảnh tối ưu không bị kẹt bộ nhớ đệm
+                    const handleLoad = () => media.classList.add('loaded');
+                    media.onload = handleLoad;
+                    media.onerror = handleLoad; 
                     media.src = src;
+                    if (media.complete) handleLoad(); // Rất quan trọng: Bắt trường hợp ảnh load quá nhanh từ cache
                 } else if (media.tagName === 'VIDEO') {
                     media.onloadeddata = () => media.classList.add('loaded');
                     media.src = src;
@@ -811,12 +759,12 @@
 
             isFlipping = true;
 
-            // FIX 7: Load trang hiện tại + 3 trang tiếp theo TRƯỚC khi flip animation
             if (shouldFlip) {
+                // Tải trang hiện tại và vài trang tiếp theo, logic này là quá đủ mượt mà
                 loadMediaForPage(pageNum);
                 loadMediaForPage(pageNum + 1); 
                 loadMediaForPage(pageNum + 2);
-                loadMediaForPage(pageNum + 3); // Thêm 1 trang buffer
+                loadMediaForPage(pageNum + 3);
             } else {
                 loadMediaForPage(pageNum - 1);
                 loadMediaForPage(pageNum - 2);
@@ -995,7 +943,6 @@
         const modalContainer = document.getElementById('modal-container');
 
         function initActions() {
-            // Load 4 trang đầu ngay lập tức
             loadMediaForPage(0);
             loadMediaForPage(1);
             loadMediaForPage(2);
@@ -1087,30 +1034,10 @@
             } else { document.getElementById("btn-start").classList.add("fade-in"); }
         }
 
-        // =============================================
-        // FIX 8: PARALLEL PRELOAD trong lúc welcome screen hiển thị
-        // Tải song song theo batch - ưu tiên các tháng đầu trước
-        // =============================================
-        function startBackgroundPreload() {
-            // Batch 1: 4 tháng đầu - tải ngay lập tức, song song
-            const batch1 = getUrlsForFirstNMonths(4);
-            preloadImagesParallel(batch1).then(() => {
-                // Batch 2: 4 tháng tiếp theo - sau khi batch 1 xong
-                const batch2 = getUrlsForFirstNMonths(8).filter(u => !batch1.includes(u));
-                preloadImagesParallel(batch2).then(() => {
-                    // Batch 3: Còn lại
-                    const allUrls = getUrlsForFirstNMonths(months.length);
-                    const batch3 = allUrls.filter(u => !batch1.includes(u) && !batch2.includes(u));
-                    preloadImagesParallel(batch3);
-                });
-            });
-        }
-
         document.addEventListener("DOMContentLoaded", function() {
             typeWriter();
             resizeSnow();
-            // Bắt đầu preload ngay sau 500ms (user đang đọc welcome text)
-            setTimeout(startBackgroundPreload, 500);
+            // Đã xóa bỏ hàm tải nhồi nhét gây nghẽn kết nối mạng ở đây
         });
 
         document.getElementById('btn-start').addEventListener('click', () => {
