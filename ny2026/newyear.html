@@ -158,7 +158,6 @@
             top: 0; left: 0;
             transform-origin: left;
             transform-style: preserve-3d;
-            /* TỐI ƯU: Giảm thời gian xuống 0.6s và dùng curve mượt hơn */
             transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
             cursor: pointer;
             will-change: transform, z-index;
@@ -175,9 +174,8 @@
             border: 1px solid #dcd3c7;
             display: flex;
             flex-direction: column;
-            /* Giảm bớt shadow nặng để tăng FPS */
             box-shadow: inset 2px 0 5px rgba(0,0,0,0.05);
-            transform: translateZ(0); /* Kích hoạt GPU layer */
+            transform: translateZ(0);
         }
 
         .back { 
@@ -270,7 +268,7 @@
         .polaroid {
             background: #faf9f6; 
             padding: 4px 4px 12px 4px;
-            box-shadow: 2px 3px 6px rgba(0,0,0,0.1); /* Giảm shadow */
+            box-shadow: 2px 3px 6px rgba(0,0,0,0.1);
             transform: rotate(var(--r));
             text-align: center;
             height: 160px; 
@@ -429,7 +427,7 @@
             <button id="next-song" class="music-btn">⏭</button>
         </div>
         <div class="song-info" id="song-title">Đang tải...</div>
-        <audio id="bg-music"></audio>
+        <audio id="bg-music" preload="metadata"></audio>
     </div>
 
     <div id="welcome-screen">
@@ -445,14 +443,14 @@
                 
                 <div class="page" id="page-0" data-page="0">
                     <div class="front cover-front">
-                        <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img">
+                        <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img" loading="lazy">
                         <h1>MIUZXC/TRANG 2025 ALBUM</h1>
                         <p>— Cùng xem lại một năm qua —</p>
                         <small style="margin-top: 20px; opacity: 0.8;">Chạm để mở album</small>
                     </div>
                     <div class="back">
                         <h2 class="month-title">MOMENT</h2>
-                        <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img zoomable">
+                        <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img zoomable" loading="lazy">
                         <p class="desc">"Những moments về mấy ng tích góp được cả năm qua"</p>
                         <span class="sticker">✨</span>
                     </div>
@@ -604,15 +602,17 @@
                     ${dataArray.map((item, i) => {
                         const captionText = item.caption || "2025 Memory";
                         if (isVideo(item.url)) {
+                            // TỐI ƯU: Thêm preload="metadata" để video không tốn mạng tải toàn bộ file ngay lập tức
                             return `
                                 <div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
-                                    <video src="${item.url}" muted loop autoplay playsinline class="zoomable-video"></video>
+                                    <video src="${item.url}" muted loop autoplay playsinline preload="metadata" class="zoomable-video"></video>
                                     <small>${captionText}</small>
                                 </div>`;
                         } else {
+                            // TỐI ƯU: Thêm loading="lazy" vào thẻ img
                             return `
                                 <div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
-                                    <img src="${item.url}" class="zoomable">
+                                    <img src="${item.url}" class="zoomable" loading="lazy">
                                     <small>${captionText}</small>
                                 </div>`;
                         }
@@ -622,9 +622,7 @@
             `;
         }
 
-        // Setup Page 0 & 1 are explicitly in HTML. Setup content for Page 1 Back.
         document.getElementById('jan-first-half').innerHTML = createGridHTML("January", albumData["January"].slice(0, 4), monthNotes["January"][0]);
-        // Set initial Z-Index for Page 0 and 1
         document.getElementById('page-0').style.zIndex = 50;
         document.getElementById('page-1').style.zIndex = 49;
 
@@ -633,8 +631,7 @@
             const p = document.createElement('div');
             p.className = 'page';
             
-            // Logic xếp Z-index tĩnh (khi chưa lật): Trang đầu cao nhất, trang sau thấp dần
-            p.style.zIndex = 50 - (index + 2); // +2 vì đã có page 0 và 1
+            p.style.zIndex = 50 - (index + 2);
             p.dataset.page = index + 2; 
             
             const note2 = (monthNotes[m] && monthNotes[m][1]) ? monthNotes[m][1] : "";
@@ -649,7 +646,7 @@
                 backHTML = `
                     <div class="back">
                         <h2 class="month-title">Closing Words</h2>
-                        <img src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable">
+                        <img src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable" loading="lazy">
                         <p class="desc">Thêm một năm gắn bó với nhau. Trong thời gian qua cũng có lúc tụi mình bất đồng với nhau, xong cũng làm lành.
                             <br>Tui cũng chỉ mong là trong tương lai tụi mình có thể gắn bó với nhau nhiều hơn, lâu hơn nữa.</p>
                         <span class="sticker">❤️</span>
@@ -670,18 +667,18 @@
                 <div class="voice-card">
                     <p style="font-size:0.8rem; font-weight:bold;">🎧 Tui có voice 1 đoạn ngắn, muốn có thể nghe thử, hok thì skip nha, hok lại cringe cringe gây mất ngủ đó 🙄 </p>
                     <button id="btn-voice-play" class="btn-voice"><span>▶</span> Nghe Voice</button>
-                    <audio id="voice-message"><source src="./voice/voice.m4a" type="audio/mpeg"></audio>
+                    <audio id="voice-message" preload="none"><source src="./voice/voice.m4a" type="audio/mpeg"></audio>
                 </div>
                 <div class="video-card">
                     <p style="font-size:0.8rem; font-weight:bold;">🎬 Thước phim ngắn tui muốn share với mấy ng</p>
                     <div class="video-container">
-                        <video width="100%" controls><source src="./video/thanks.mp4" type="video/mp4"></video>
+                        <video width="100%" controls preload="metadata"><source src="./video/thanks.mp4" type="video/mp4"></video>
                     </div>
                 </div>
             </div>
             <div class="back">
                 <h2 class="month-title">A Little Message</h2>
-                <img src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable">
+                <img src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable" loading="lazy">
                 <p class="desc">Một năm qua vui có, buồn có, nhưng cũng là một năm đáng nhớ. Bỏ qua mọi muộn phiền của năm nay, chuẩn bị hành trang cho một năm mới.
                     <br>Chúc Trang năm mới vui vẻ, gặp nhiều may mắn, công viêc thuận lợi, gia đình bình an và hạnh phúc.</p>
             </div>
@@ -702,7 +699,6 @@
         `;
         book.appendChild(finalPage);
 
-        // --- PAGE FLIP LOGIC (OPTIMIZED FOR SPEED) ---
         let isFlipping = false;
 
         function flipPage(pageElement, forceState = null) {
@@ -717,18 +713,15 @@
             isFlipping = true;
 
             if (shouldFlip) {
-                // LẬT ĐI (Phải -> Trái)
                 pageElement.style.zIndex = 200 + pageNum; 
                 pageElement.classList.add('flipped');
 
-                // Tăng tốc độ trả lại trạng thái (600ms thay vì 800ms)
                 setTimeout(() => {
                     pageElement.style.zIndex = 50 + pageNum;
                     isFlipping = false;
                 }, 600);
 
             } else {
-                // LẬT VỀ (Trái -> Phải)
                 pageElement.style.zIndex = 200 + pageNum; 
                 pageElement.classList.remove('flipped');
 
@@ -739,7 +732,6 @@
             }
         }
 
-        // --- ZOOM & PAN LOGIC ---
         let currentScale = 1;
         let startX = 0, startY = 0;
         let transX = 0, transY = 0;
@@ -748,12 +740,11 @@
         const viewport = document.getElementById('viewport');
         const bookContainer = document.getElementById('book-container');
 
-        // Auto-fit function
         function autoFitBook() {
             const screenW = window.innerWidth;
             const bookW = 450; 
             if (screenW < 500) {
-                currentScale = (screenW / bookW) * 0.95; // 95% width
+                currentScale = (screenW / bookW) * 0.95;
             } else {
                 currentScale = 1;
             }
@@ -776,7 +767,6 @@
             updateTransform();
         });
 
-        // Touch handling for Pan (Drag) & Pinch
         let initialPinchDistance = null;
         let initialScale = 1;
 
@@ -784,7 +774,6 @@
             if (e.target.tagName === 'AUDIO' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
             if (e.touches.length === 2) {
-                // Pinch start
                 isDragging = false;
                 initialPinchDistance = Math.hypot(
                     e.touches[0].pageX - e.touches[1].pageX,
@@ -792,7 +781,6 @@
                 );
                 initialScale = currentScale;
             } else if (e.touches.length === 1) {
-                // Drag start
                 isDragging = true;
                 isMoved = false;
                 startX = e.touches[0].pageX - transX;
@@ -802,7 +790,6 @@
 
         viewport.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2 && initialPinchDistance) {
-                // Pinch move
                 e.preventDefault(); 
                 const dist = Math.hypot(
                     e.touches[0].pageX - e.touches[1].pageX,
@@ -812,7 +799,6 @@
                 currentScale = initialScale * scaleFactor;
                 updateTransform();
             } else if (e.touches.length === 1 && isDragging) {
-                // Drag move
                 const dx = Math.abs(e.touches[0].pageX - (startX + transX));
                 const dy = Math.abs(e.touches[0].pageY - (startY + transY));
                 
@@ -831,7 +817,6 @@
             initialPinchDistance = null;
         });
 
-        // Mouse Drag (for desktop testing)
         viewport.addEventListener('mousedown', e => {
             if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.closest('.music-player')) return;
             isDragging = true;
@@ -857,8 +842,6 @@
             viewport.style.cursor = 'default';
         });
 
-
-        // --- SWIPE TO FLIP LOGIC ---
         let touchStartX = 0;
         let touchEndX = 0;
         
@@ -938,7 +921,6 @@
         }
         setTimeout(initActions, 100);
 
-        /* --- NHẠC NỀN --- */
         const playlist = [
             { title: "Make It Right", src: "./music/Make_It_Right.mp3" },
             { title: "Love On Replay", src: "./music/Love_On_Replay.mp3" },
@@ -984,7 +966,6 @@
         bgMusic.addEventListener('ended', () => { nextBtn.click(); });
         loadSong(currentSongIndex);
 
-        /* --- WELCOME --- */
         const welcomeText = "Hey\nMột năm nữa lại trôi qua\nTui có làm một album nhỏ về mấy ng, mình cùng xem nha\n Mong là mấy ng sẽ thích nó";
         let charIdx = 0;
         function typeWriter() {
@@ -993,10 +974,14 @@
                 charIdx++; setTimeout(typeWriter, 60);
             } else { document.getElementById("btn-start").classList.add("fade-in"); }
         }
-        window.onload = function() {
+
+        // TỐI ƯU CỰC KỲ QUAN TRỌNG: 
+        // Thay window.onload (phải chờ tất cả ảnh tải xong) 
+        // thành DOMContentLoaded (hiện chữ Welcome ngay lập tức, ảnh tải ngầm phía sau)
+        document.addEventListener("DOMContentLoaded", function() {
             typeWriter();
             resizeSnow();
-        };
+        });
 
         document.getElementById('btn-start').addEventListener('click', () => {
             document.getElementById('welcome-screen').style.opacity = '0';
@@ -1010,7 +995,6 @@
             }, 1000);
         });
 
-        /* --- SNOW --- */
         const snowCanvas = document.getElementById('snow-canvas');
         const sctx = snowCanvas.getContext('2d');
         let snowParticles = [];
@@ -1030,14 +1014,12 @@
         function animateSnow() { sctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height); snowParticles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateSnow); }
         animateSnow();
 
-        /* --- FIREWORKS & CLOSE --- */
         document.getElementById('btn-close').addEventListener('click', () => {
             const fCanvas = document.getElementById('fireworks-canvas');
             const fctx = fCanvas.getContext('2d');
             const nyText = document.getElementById('happy-new-year-text');
             document.getElementById('myBook').style.transform = "scale(0) rotateY(-180deg)";
             document.getElementById('myBook').style.opacity = "0";
-            // Hide Zoom Controls
             document.querySelector('.zoom-controls').style.display = 'none';
             setTimeout(() => {
                 document.getElementById('book-container').style.display = "none";
@@ -1062,16 +1044,13 @@
             }, 1000);
         });
 
-        // --- XỬ LÝ VOICE PLAYER (FIXED) ---
         document.addEventListener('click', function(e) {
-            // Dùng closest để bắt sự kiện kể cả khi click vào thẻ span (icon) bên trong button
             const btn = e.target.closest('#btn-voice-play');
             
             if (btn) {
                 const v = document.getElementById('voice-message');
                 if (!v) return;
 
-                // Thêm sự kiện tự động reset nút khi hết nhạc
                 v.onended = function() {
                     btn.innerHTML = "<span>▶</span> Nghe Voice";
                 };
@@ -1080,12 +1059,11 @@
                     v.play();
                     btn.innerHTML = "<span>⏸</span> Đang Phát";
                 } else {
-                    v.pause(); // Cho phép dừng
-                    btn.innerHTML = "<span>▶</span> Nghe Voice"; // Quay lại trạng thái ban đầu
+                    v.pause(); 
+                    btn.innerHTML = "<span>▶</span> Nghe Voice"; 
                 }
             }
         });
     </script>
 </body>
 </html>
-
