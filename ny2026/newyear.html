@@ -5,15 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TRANG 2025 ALBUM</title>
     
-    <link rel="preconnect" href="https://i.postimg.cc" crossorigin>
-    <link rel="dns-prefetch" href="https://i.postimg.cc">
+    <!-- ĐÃ XÓA: <link rel="preload"> vì PostImg chặn hotlink qua HTML preload -->
+    <!-- Preload giờ được xử lý bằng JS với referrerPolicy = 'no-referrer' -->
 
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Montserrat:wght@300;400&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
-    
-    <link rel="preload" as="image" href="https://i.postimg.cc/mg8CH9xR/pic0.png">
-    <link rel="preload" as="image" href="https://i.postimg.cc/yNb8DqTQ/pic1.png">
-    <link rel="preload" as="image" href="https://i.postimg.cc/3NYZ4KPp/pic1_t1.png">
-    <link rel="preload" as="image" href="https://i.postimg.cc/WzT7F2Qq/pic2_t1.png">
 
     <style>
         :root {
@@ -460,14 +455,15 @@
                 
                 <div class="page" id="page-0" data-page="0">
                     <div class="front cover-front">
-                        <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img" decoding="async">
+                        <!-- FIX: referrerpolicy="no-referrer" trên tất cả ảnh PostImg -->
+                        <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img" decoding="async" referrerpolicy="no-referrer" crossorigin="anonymous">
                         <h1>MIUZXC/TRANG 2025 ALBUM</h1>
                         <p>— Cùng xem lại một năm qua —</p>
                         <small style="margin-top: 20px; opacity: 0.8;">Chạm để mở album</small>
                     </div>
                     <div class="back">
                         <h2 class="month-title">MOMENT</h2>
-                        <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img zoomable lazy-media loaded" decoding="async">
+                        <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img zoomable lazy-media loaded" decoding="async" referrerpolicy="no-referrer" crossorigin="anonymous">
                         <p class="desc">"Những moments về mấy ng tích góp được cả năm qua"</p>
                         <span class="sticker">✨</span>
                     </div>
@@ -608,6 +604,41 @@
             return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video');
         }
 
+        // =============================================
+        // FIX CHÍNH: JS Preloader với referrerPolicy = 'no-referrer'
+        // PostImg chặn hotlink khi có Referer header từ github.io
+        // Dùng no-referrer để bypass kiểm tra này
+        // =============================================
+        const imageCache = new Set();
+        function preloadImagesParallel(urls) {
+            const imageUrls = urls.filter(u => !isVideo(u) && !imageCache.has(u));
+            if (imageUrls.length === 0) return Promise.resolve();
+            
+            imageUrls.forEach(u => imageCache.add(u));
+            
+            return Promise.all(
+                imageUrls.map(url => new Promise(resolve => {
+                    const img = new Image();
+                    img.referrerPolicy = 'no-referrer'; // KEY FIX: Bypass PostImg hotlink check
+                    img.crossOrigin = 'anonymous';
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                    img.src = url;
+                }))
+            );
+        }
+
+        function getUrlsForFirstNMonths(n) {
+            const urls = [];
+            months.slice(0, n).forEach(m => {
+                albumData[m].forEach(item => {
+                    if (!isVideo(item.url)) urls.push(item.url);
+                });
+            });
+            return urls;
+        }
+
+        // FIX: Thêm referrerpolicy="no-referrer" vào tất cả img được tạo động
         function createGridHTML(monthName, dataArray, noteText = "", isEager = false) {
             if (!dataArray || dataArray.length === 0) {
                 return `<h2 class="month-title">${monthName}</h2><div class="page-note">${noteText}</div>`;
@@ -615,6 +646,8 @@
 
             const srcAttr = isEager ? 'src' : 'data-src';
             const loadClass = isEager ? 'loaded' : '';
+            // Chỉ thêm referrerpolicy khi là ảnh PostImg (eager load)
+            const refPolicy = isEager ? 'referrerpolicy="no-referrer" crossorigin="anonymous"' : '';
 
             return `
                 <h2 class="month-title">${monthName}</h2>
@@ -630,7 +663,7 @@
                         } else {
                             return `
                                 <div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
-                                    <img ${srcAttr}="${item.url}" class="zoomable lazy-media ${loadClass}" decoding="async">
+                                    <img ${srcAttr}="${item.url}" class="zoomable lazy-media ${loadClass}" decoding="async" ${refPolicy}>
                                     <small>${captionText}</small>
                                 </div>`;
                         }
@@ -663,7 +696,7 @@
                 backHTML = `
                     <div class="back">
                         <h2 class="month-title">Closing Words</h2>
-                        <img data-src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable lazy-media" decoding="async">
+                        <img data-src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable lazy-media" decoding="async" referrerpolicy="no-referrer" crossorigin="anonymous">
                         <p class="desc">Thêm một năm gắn bó với nhau. Trong thời gian qua cũng có lúc tụi mình bất đồng với nhau, xong cũng làm lành.
                             <br>Tui cũng chỉ mong là trong tương lai tụi mình có thể gắn bó với nhau nhiều hơn, lâu hơn nữa.</p>
                         <span class="sticker">❤️</span>
@@ -695,7 +728,7 @@
             </div>
             <div class="back">
                 <h2 class="month-title">A Little Message</h2>
-                <img data-src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable lazy-media" decoding="async">
+                <img data-src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable lazy-media" decoding="async" referrerpolicy="no-referrer" crossorigin="anonymous">
                 <p class="desc">Một năm qua vui có, buồn có, nhưng cũng là một năm đáng nhớ. Bỏ qua mọi muộn phiền của năm nay, chuẩn bị hành trang cho một năm mới.
                     <br>Chúc Trang năm mới vui vẻ, gặp nhiều may mắn, công viêc thuận lợi, gia đình bình an và hạnh phúc.</p>
             </div>
@@ -716,6 +749,9 @@
         `;
         book.appendChild(finalPage);
 
+        // =============================================
+        // loadMediaForPage: Inject referrerpolicy khi set src động
+        // =============================================
         const loadedPages = new Set();
 
         function loadMediaForPage(pageIndex) {
@@ -732,12 +768,12 @@
                 media.removeAttribute('data-src');
 
                 if (media.tagName === 'IMG') {
-                    // Logic xử lý hiển thị ảnh tối ưu không bị kẹt bộ nhớ đệm
-                    const handleLoad = () => media.classList.add('loaded');
-                    media.onload = handleLoad;
-                    media.onerror = handleLoad; 
+                    // FIX: Set referrerpolicy trước khi gán src
+                    media.referrerPolicy = 'no-referrer';
+                    media.crossOrigin = 'anonymous';
+                    media.onload = () => media.classList.add('loaded');
+                    media.onerror = () => media.classList.add('loaded');
                     media.src = src;
-                    if (media.complete) handleLoad(); // Rất quan trọng: Bắt trường hợp ảnh load quá nhanh từ cache
                 } else if (media.tagName === 'VIDEO') {
                     media.onloadeddata = () => media.classList.add('loaded');
                     media.src = src;
@@ -760,7 +796,6 @@
             isFlipping = true;
 
             if (shouldFlip) {
-                // Tải trang hiện tại và vài trang tiếp theo, logic này là quá đủ mượt mà
                 loadMediaForPage(pageNum);
                 loadMediaForPage(pageNum + 1); 
                 loadMediaForPage(pageNum + 2);
@@ -963,7 +998,11 @@
                             const v = document.createElement('video'); v.src = e.target.src; v.controls = true; v.autoplay = true; v.className = "modal-content";
                             modalContainer.appendChild(v);
                         } else {
-                            const img = document.createElement('img'); img.src = e.target.src; img.className = "modal-content";
+                            const img = document.createElement('img');
+                            img.src = e.target.src;
+                            img.referrerPolicy = 'no-referrer'; // FIX: modal image cũng cần
+                            img.crossOrigin = 'anonymous';
+                            img.className = "modal-content";
                             modalContainer.appendChild(img);
                         }
                         return;
@@ -1034,10 +1073,23 @@
             } else { document.getElementById("btn-start").classList.add("fade-in"); }
         }
 
+        // Preload song song với referrerPolicy đúng
+        function startBackgroundPreload() {
+            const batch1 = getUrlsForFirstNMonths(4);
+            preloadImagesParallel(batch1).then(() => {
+                const batch2 = getUrlsForFirstNMonths(8).filter(u => !batch1.includes(u));
+                preloadImagesParallel(batch2).then(() => {
+                    const allUrls = getUrlsForFirstNMonths(months.length);
+                    const batch3 = allUrls.filter(u => !batch1.includes(u) && !batch2.includes(u));
+                    preloadImagesParallel(batch3);
+                });
+            });
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             typeWriter();
             resizeSnow();
-            // Đã xóa bỏ hàm tải nhồi nhét gây nghẽn kết nối mạng ở đây
+            setTimeout(startBackgroundPreload, 500);
         });
 
         document.getElementById('btn-start').addEventListener('click', () => {
