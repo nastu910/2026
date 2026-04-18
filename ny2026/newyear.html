@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TRANG 2025 ALBUM</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Montserrat:wght@300;400&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="preload" as="image" href="https://i.postimg.cc/mg8CH9xR/pic0.png">
+    <link rel="preload" as="image" href="https://i.postimg.cc/yNb8DqTQ/pic1.png">
+
     <style>
         :root {
             --bg-color: #0f172a; 
@@ -278,11 +282,21 @@
             transform: translateZ(0) rotate(var(--r));
             will-change: transform;
         }
+
+        /* TỐI ƯU 2: Thêm hiệu ứng fade-in cho ảnh/video lazy load để UX mượt hơn */
+        .lazy-media {
+            opacity: 0;
+            transition: opacity 0.4s ease-in;
+        }
+        .lazy-media.loaded {
+            opacity: 1;
+        }
+
         .polaroid img, .polaroid video { 
             width: 100%; 
             height: 115px; 
             object-fit: cover; 
-            background: #eee; 
+            background: #e0dcd3; /* Màu nền chờ (skeleton) */
             border: 1px solid #ddd; 
             pointer-events: none; 
         }
@@ -443,14 +457,14 @@
                 
                 <div class="page" id="page-0" data-page="0">
                     <div class="front cover-front">
-                        <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img" loading="lazy">
+                        <img src="https://i.postimg.cc/mg8CH9xR/pic0.png" alt="Cover" class="main-cover-img" decoding="async">
                         <h1>MIUZXC/TRANG 2025 ALBUM</h1>
                         <p>— Cùng xem lại một năm qua —</p>
                         <small style="margin-top: 20px; opacity: 0.8;">Chạm để mở album</small>
                     </div>
                     <div class="back">
                         <h2 class="month-title">MOMENT</h2>
-                        <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img zoomable" loading="lazy">
+                        <img src="https://i.postimg.cc/yNb8DqTQ/pic1.png" class="full-img zoomable" decoding="async">
                         <p class="desc">"Những moments về mấy ng tích góp được cả năm qua"</p>
                         <span class="sticker">✨</span>
                     </div>
@@ -591,6 +605,7 @@
             return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.includes('video');
         }
 
+        // TỐI ƯU 3: Đổi toàn bộ thẻ src thành data-src để quản lý Lazy Load bằng JS
         function createGridHTML(monthName, dataArray, noteText = "") {
             if (!dataArray || dataArray.length === 0) {
                 return `<h2 class="month-title">${monthName}</h2><div class="page-note">${noteText}</div>`;
@@ -602,17 +617,17 @@
                     ${dataArray.map((item, i) => {
                         const captionText = item.caption || "2025 Memory";
                         if (isVideo(item.url)) {
-                            // TỐI ƯU: Thêm preload="metadata" để video không tốn mạng tải toàn bộ file ngay lập tức
+                            // Video được gán data-src, preload="none" để không ngốn RAM cho đến khi lật tới
                             return `
                                 <div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
-                                    <video src="${item.url}" muted loop autoplay playsinline preload="metadata" class="zoomable-video"></video>
+                                    <video data-src="${item.url}" muted loop autoplay playsinline preload="none" class="zoomable-video lazy-media"></video>
                                     <small>${captionText}</small>
                                 </div>`;
                         } else {
-                            // TỐI ƯU: Thêm loading="lazy" vào thẻ img
+                            // Ảnh dùng data-src, class lazy-media và decoding async
                             return `
                                 <div class="polaroid" style="--r: ${i % 2 === 0 ? '-2deg' : '2deg'}">
-                                    <img src="${item.url}" class="zoomable" loading="lazy">
+                                    <img data-src="${item.url}" class="zoomable lazy-media" decoding="async">
                                     <small>${captionText}</small>
                                 </div>`;
                         }
@@ -643,10 +658,11 @@
                 const note1 = (monthNotes[nextM] && monthNotes[nextM][0]) ? monthNotes[nextM][0] : "";
                 backHTML = `<div class="back">${createGridHTML(nextM, albumData[nextM].slice(0, 4), note1)}</div>`;
             } else {
+                // Trang cuối dùng data-src thay vì src
                 backHTML = `
                     <div class="back">
                         <h2 class="month-title">Closing Words</h2>
-                        <img src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable" loading="lazy">
+                        <img data-src="https://i.postimg.cc/gJw31s3R/pic3.png" class="full-img zoomable lazy-media" decoding="async">
                         <p class="desc">Thêm một năm gắn bó với nhau. Trong thời gian qua cũng có lúc tụi mình bất đồng với nhau, xong cũng làm lành.
                             <br>Tui cũng chỉ mong là trong tương lai tụi mình có thể gắn bó với nhau nhiều hơn, lâu hơn nữa.</p>
                         <span class="sticker">❤️</span>
@@ -672,13 +688,13 @@
                 <div class="video-card">
                     <p style="font-size:0.8rem; font-weight:bold;">🎬 Thước phim ngắn tui muốn share với mấy ng</p>
                     <div class="video-container">
-                        <video width="100%" controls preload="metadata"><source src="./video/thanks.mp4" type="video/mp4"></video>
+                        <video width="100%" controls preload="none" data-src="./video/thanks.mp4" class="lazy-media"></video>
                     </div>
                 </div>
             </div>
             <div class="back">
                 <h2 class="month-title">A Little Message</h2>
-                <img src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable" loading="lazy">
+                <img data-src="https://i.postimg.cc/zvv8Jyn3/pic2_t12.png" class="full-img zoomable lazy-media" decoding="async">
                 <p class="desc">Một năm qua vui có, buồn có, nhưng cũng là một năm đáng nhớ. Bỏ qua mọi muộn phiền của năm nay, chuẩn bị hành trang cho một năm mới.
                     <br>Chúc Trang năm mới vui vẻ, gặp nhiều may mắn, công viêc thuận lợi, gia đình bình an và hạnh phúc.</p>
             </div>
@@ -699,6 +715,31 @@
         `;
         book.appendChild(finalPage);
 
+        // --- TỐI ƯU 4: HÀM QUẢN LÝ LAZY LOAD CHỦ ĐỘNG THEO TRANG ---
+        const allPagesInBook = document.querySelectorAll('.page');
+        
+        function loadMediaForPage(pageIndex) {
+            if (pageIndex < 0 || pageIndex >= allPagesInBook.length) return;
+            const page = allPagesInBook[pageIndex];
+            
+            if (page.dataset.loaded === 'true') return;
+
+            const mediaElements = page.querySelectorAll('.lazy-media[data-src]');
+            mediaElements.forEach(media => {
+                media.src = media.dataset.src;
+                media.removeAttribute('data-src');
+                
+                // Hiệu ứng mờ dần khi load xong
+                if (media.tagName === 'IMG') {
+                    media.onload = () => media.classList.add('loaded');
+                } else {
+                    media.onloadeddata = () => media.classList.add('loaded');
+                }
+            });
+            page.dataset.loaded = 'true';
+        }
+
+        // --- HÀM LẬT TRANG (Đã bổ sung load ảnh) ---
         let isFlipping = false;
 
         function flipPage(pageElement, forceState = null) {
@@ -711,6 +752,15 @@
             if (shouldFlip === isCurrentlyFlipped) return;
 
             isFlipping = true;
+
+            // Kích hoạt load ảnh cho trang tiếp theo để sẵn sàng (Look-ahead)
+            if (shouldFlip) {
+                loadMediaForPage(pageNum + 1); // Trang mặt tiếp theo
+                loadMediaForPage(pageNum + 2); // Chuẩn bị thêm 1 trang nữa
+            } else {
+                loadMediaForPage(pageNum - 1);
+                loadMediaForPage(pageNum - 2);
+            }
 
             if (shouldFlip) {
                 pageElement.style.zIndex = 200 + pageNum; 
@@ -888,6 +938,11 @@
         const modalContainer = document.getElementById('modal-container');
 
         function initActions() {
+            // Khởi tạo tải trước các trang bìa và trang đầu tiên
+            loadMediaForPage(0);
+            loadMediaForPage(1);
+            loadMediaForPage(2);
+
             const allPages = document.querySelectorAll('.page');
             allPages.forEach((page, index) => {
                 
@@ -975,9 +1030,6 @@
             } else { document.getElementById("btn-start").classList.add("fade-in"); }
         }
 
-        // TỐI ƯU CỰC KỲ QUAN TRỌNG: 
-        // Thay window.onload (phải chờ tất cả ảnh tải xong) 
-        // thành DOMContentLoaded (hiện chữ Welcome ngay lập tức, ảnh tải ngầm phía sau)
         document.addEventListener("DOMContentLoaded", function() {
             typeWriter();
             resizeSnow();
